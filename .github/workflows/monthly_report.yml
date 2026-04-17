@@ -3,7 +3,7 @@ name: Monthly Bounce-Back Report
 on:
   schedule:
     - cron: '0 8 1 * *'   # 8am UTC on the 1st of every month
-  workflow_dispatch:        # allow manual trigger from GitHub Actions UI
+  workflow_dispatch:        # allow manual trigger from GitHub Actions UI (click "Run workflow")
 
 jobs:
   generate-report:
