@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bounce-Back Candidates — July 2026</title>
+  <style>
+    :root {
+      --green: #16a34a; --green-bg: #dcfce7;
+      --yellow: #d97706; --yellow-bg: #fef9c3;
+      --gray: #6b7280; --gray-bg: #f3f4f6;
+      --red: #dc2626; --red-bg: #fee2e2;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1a1a1a; }
+
+    .header { background: #0f172a; color: white; padding: 28px 40px; }
+    .header h1 { font-size: 1.6rem; font-weight: 700; }
+    .header .meta { color: #94a3b8; font-size: 0.85rem; margin-top: 6px; }
+    .stats { display: flex; gap: 24px; margin-top: 16px; }
+    .stat { background: rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 18px; }
+    .stat .n { font-size: 1.5rem; font-weight: 700; }
+    .stat .l { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+    .section-title { font-size: 1.1rem; font-weight: 700; color: #374151; margin: 32px 0 16px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+
+    /* Summary table */
+    .summary-table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+    .summary-table th { background: #f1f5f9; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; padding: 10px 14px; }
+    .summary-table td { padding: 12px 14px; border-top: 1px solid var(--border); font-size: 0.9rem; }
+    .summary-table tr:hover td { background: #f8fafc; }
+    .summary-table a { color: #0066cc; text-decoration: none; font-weight: 600; }
+    .summary-table a:hover { text-decoration: underline; }
+
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-green { background: var(--green-bg); color: var(--green); }
+    .badge-yellow { background: var(--yellow-bg); color: var(--yellow); }
+    .badge-gray { background: var(--gray-bg); color: var(--gray); }
+
+    /* Stock cards */
+    .stock-card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 28px; overflow: hidden; }
+    .card-header { padding: 18px 24px; display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .card-rank { font-size: 1.8rem; font-weight: 800; color: #cbd5e1; margin-right: 16px; min-width: 44px; }
+    .card-title { flex: 1; }
+    .card-title .ticker { font-size: 1.4rem; font-weight: 800; color: #0f172a; }
+    .card-title .name { font-size: 0.88rem; color: #64748b; margin-top: 2px; }
+    .card-title .meta { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+    .card-score { text-align: right; }
+    .score-circle { width: 68px; height: 68px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .score-circle .num { font-size: 1.5rem; font-weight: 800; line-height: 1; }
+    .score-circle .denom { font-size: 0.7rem; color: inherit; opacity: 0.7; }
+    .score-circle.green { background: var(--green-bg); color: var(--green); }
+    .score-circle.yellow { background: var(--yellow-bg); color: var(--yellow); }
+    .score-circle.gray { background: var(--gray-bg); color: var(--gray); }
+
+    .card-body { padding: 20px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 680px) { .card-body { grid-template-columns: 1fr; } }
+
+    .categories { }
+    .category { margin-bottom: 12px; }
+    .cat-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; margin-bottom: 4px; }
+    .cat-name { font-weight: 600; color: #374151; }
+    .cat-score { color: #64748b; font-size: 0.8rem; }
+    .bar-bg { background: #f1f5f9; border-radius: 99px; height: 7px; }
+    .bar-fill { height: 7px; border-radius: 99px; }
+    .bar-fill.green { background: var(--green); }
+    .bar-fill.yellow { background: var(--yellow); }
+    .bar-fill.gray { background: #94a3b8; }
+
+    .signals { }
+    .signal-section { margin-bottom: 16px; }
+    .signal-section h4 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; font-weight: 700; margin-bottom: 8px; }
+    .signal-list { list-style: none; }
+    .signal-list li { font-size: 0.83rem; color: #374151; margin-bottom: 6px; padding-left: 16px; position: relative; }
+    .signal-list li::before { content: "›"; position: absolute; left: 0; color: #94a3b8; }
+    .signal-list.risk li::before { content: "!"; color: var(--red); font-weight: 700; }
+    .signal-list.catalyst li::before { content: "↑"; color: var(--green); font-weight: 700; }
+
+    .action-bar { padding: 12px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: #fafafa; }
+    .action-label { font-size: 0.8rem; color: #64748b; }
+    .action-value { font-weight: 600; }
+    .action-strong { color: var(--green); }
+    .action-watch { color: var(--yellow); }
+    .action-pass { color: var(--gray); }
+
+    .empty { text-align: center; color: #94a3b8; padding: 48px; font-size: 1rem; }
+    footer { text-align: center; color: #94a3b8; font-size: 0.75rem; padding: 32px; }
+    footer a { color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Bounce-Back Candidates — July 2026</h1>
+  <div class="meta">Generated July 01, 2026 at 01:01 PM &nbsp;·&nbsp; US stocks down ≥75% (52-week), market cap &gt;$300M</div>
+  <div class="stats">
+    <div class="stat"><div class="n">8594</div><div class="l">Screened</div></div>
+    <div class="stat"><div class="n">8594</div><div class="l">Disqualified</div></div>
+    <div class="stat"><div class="n">0</div><div class="l">Scored</div></div>
+    <div class="stat"><div class="n">0</div><div class="l">Strong Buys</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+  
+  
+  <div class="empty">No candidates passed all filters this month.</div>
+  
+
+  
+  
+
+</div>
+
+<footer>
+  StockPicker &nbsp;·&nbsp; Data via Yahoo Finance &amp; SEC EDGAR &nbsp;·&nbsp;
+  <strong>Not financial advice.</strong> Do your own due diligence.
+</footer>
+
+</body>
+</html>
