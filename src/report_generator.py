@@ -18,6 +18,8 @@ def generate(
     month: str,
     num_screened: int,
     num_disqualified: int,
+    basket=None,
+    budget: float = 0.0,
 ) -> Path:
     """Render HTML report and write to docs/reports/YYYY-MM.html. Returns path."""
     DOCS_DIR.mkdir(exist_ok=True)
@@ -39,6 +41,8 @@ def generate(
         num_scored=len(scores),
         strong_buys=[s for s in scores if s.total >= 75],
         watchlist=[s for s in scores if 55 <= s.total < 75],
+        basket=basket or [],
+        budget=budget,
     )
 
     report_path = DOCS_DIR / "reports" / f"{month}.html"
@@ -69,7 +73,7 @@ def _update_index(new_month: str, new_month_label: str) -> None:
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>StockPicker — Bounce-Back Reports</title>
+  <title>PhoenixPicks — AI Stock Reports</title>
   <style>
     body {{ font-family: system-ui, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; color: #1a1a1a; }}
     h1 {{ font-size: 1.8rem; margin-bottom: 0.25rem; }}
@@ -78,14 +82,16 @@ def _update_index(new_month: str, new_month_label: str) -> None:
     li {{ margin: 12px 0; }}
     a {{ color: #0066cc; text-decoration: none; font-size: 1.1rem; }}
     a:hover {{ text-decoration: underline; }}
+    .aside {{ margin-top: 28px; font-size: 0.95rem; }}
   </style>
 </head>
 <body>
-  <h1>Bounce-Back Candidates</h1>
-  <p>Monthly analysis of US stocks down 75%+ that show recovery potential.</p>
+  <h1>🔥 PhoenixPicks</h1>
+  <p>AI-screened US stocks down 75%+ — hunting the ones that rise from the ashes.</p>
   <ul>
 {chr(10).join(link_items)}
   </ul>
+  <p class="aside"><a href="backtest.html">→ Does this strategy actually work? See the historical backtest.</a></p>
 </body>
 </html>"""
 

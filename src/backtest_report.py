@@ -1,0 +1,248 @@
+"""Render the backtest summary as a self-contained HTML report with inline SVG charts."""
+from __future__ import annotations
+
+import html
+from datetime import datetime
+from pathlib import Path
+
+DOCS_DIR = Path(__file__).parent.parent / "docs"
+
+GREEN = "#16a34a"
+RED = "#dc2626"
+SLATE = "#64748b"
+BLUE = "#2563eb"
+
+
+def _pct(x: float, plus: bool = True) -> str:
+    if x is None:
+        return "—"
+    s = f"{x:+.1%}" if plus else f"{x:.1%}"
+    return s
+
+
+def _bar_dist(dist: list[dict]) -> str:
+    """Horizontal histogram of 12m return buckets."""
+    if not dist:
+        return ""
+    maxn = max(d["n"] for d in dist) or 1
+    rows = []
+    row_h, gap, label_w, bar_w = 26, 6, 130, 520
+    total_h = len(dist) * (row_h + gap)
+    for i, d in enumerate(dist):
+        y = i * (row_h + gap)
+        w = (d["n"] / maxn) * bar_w
+        # green for positive buckets, red for negative, gray at zero crossing
+        neg = d["label"].startswith(("≤", "-")) and "0 to" not in d["label"]
+        color = RED if neg else GREEN
+        rows.append(
+            f'<text x="{label_w - 8}" y="{y + row_h/2 + 4}" text-anchor="end" '
+            f'font-size="12" fill="#475569">{html.escape(d["label"])}</text>'
+            f'<rect x="{label_w}" y="{y}" width="{w:.1f}" height="{row_h}" rx="3" fill="{color}" opacity="0.82"/>'
+            f'<text x="{label_w + w + 6:.1f}" y="{y + row_h/2 + 4}" font-size="11.5" '
+            f'fill="#334155" font-weight="600">{d["n"]}</text>'
+        )
+    return (f'<svg viewBox="0 0 {label_w + bar_w + 60} {total_h}" width="100%" '
+            f'style="max-width:720px" role="img">{"".join(rows)}</svg>')
+
+
+def _grouped_year_chart(by_year: list[dict]) -> str:
+    """Grouped bars: strategy median vs SPY median 12m return, per year."""
+    if not by_year:
+        return ""
+    W, H = 760, 300
+    pad_l, pad_b, pad_t = 44, 46, 20
+    plot_w, plot_h = W - pad_l - 12, H - pad_b - pad_t
+    vals = [v for d in by_year for v in (d["median"], d["spy_median"])]
+    vmax = max(0.5, max(vals)); vmin = min(-0.5, min(vals))
+    span = vmax - vmin
+
+    def y_of(v):
+        return pad_t + (vmax - v) / span * plot_h
+
+    zero_y = y_of(0)
+    n = len(by_year)
+    group_w = plot_w / n
+    bw = min(26, group_w / 2.6)
+    parts = [f'<line x1="{pad_l}" y1="{zero_y:.1f}" x2="{W-12}" y2="{zero_y:.1f}" stroke="#cbd5e1" stroke-width="1"/>']
+    # gridlines / y labels
+    for gv in (vmax, (vmax+vmin)/2, vmin):
+        gy = y_of(gv)
+        parts.append(f'<text x="{pad_l-8}" y="{gy+4:.1f}" text-anchor="end" font-size="10.5" fill="#94a3b8">{gv:+.0%}</text>')
+    for i, d in enumerate(by_year):
+        cx = pad_l + i * group_w + group_w / 2
+        for j, (val, color) in enumerate([(d["median"], BLUE), (d["spy_median"], SLATE)]):
+            x = cx - bw + j * bw
+            yv = y_of(val)
+            top = min(yv, zero_y); h = abs(yv - zero_y)
+            parts.append(f'<rect x="{x:.1f}" y="{top:.1f}" width="{bw-2:.1f}" height="{h:.1f}" rx="2" fill="{color}" opacity="0.9"/>')
+        parts.append(f'<text x="{cx:.1f}" y="{H-pad_b+16}" text-anchor="middle" font-size="10.5" fill="#64748b">{str(d["year"])[2:]}</text>')
+        parts.append(f'<text x="{cx:.1f}" y="{H-pad_b+30}" text-anchor="middle" font-size="9" fill="#cbd5e1">n={d["n"]}</text>')
+    legend = (f'<rect x="{pad_l}" y="2" width="11" height="11" rx="2" fill="{BLUE}"/>'
+              f'<text x="{pad_l+16}" y="11" font-size="11" fill="#475569">Strategy median</text>'
+              f'<rect x="{pad_l+130}" y="2" width="11" height="11" rx="2" fill="{SLATE}"/>'
+              f'<text x="{pad_l+146}" y="11" font-size="11" fill="#475569">SPY median</text>')
+    return (f'<svg viewBox="0 0 {W} {H}" width="100%" style="max-width:760px" role="img">'
+            f'{legend}{"".join(parts)}</svg>')
+
+
+def render(summary: dict) -> Path:
+    w = summary["windows"]
+    generated = datetime.now().strftime("%B %d, %Y")
+    drop = summary["drop_pct"]; cap = summary["min_cap_mm"]
+
+    # headline uses the 12m window
+    h12 = w.get("12m", {})
+
+    def stat_card(label, value, sub=""):
+        return (f'<div class="stat"><div class="n">{value}</div>'
+                f'<div class="l">{label}</div>'
+                + (f'<div class="sub">{sub}</div>' if sub else "") + '</div>')
+
+    window_rows = ""
+    for label in ("3m", "6m", "12m"):
+        s = w.get(label)
+        if not s:
+            continue
+        edge = s["median"] - s["spy_median"]
+        edge_color = GREEN if edge >= 0 else RED
+        window_rows += f"""
+        <tr>
+          <td style="font-weight:700">{label}</td>
+          <td>{s['n']:,}</td>
+          <td>{_pct(s['median'])}</td>
+          <td style="color:{SLATE}">{_pct(s['spy_median'])}</td>
+          <td style="color:{edge_color};font-weight:600">{_pct(edge)}</td>
+          <td>{_pct(s['pct_beat_spy'], plus=False)}</td>
+          <td>{_pct(s['pct_pos'], plus=False)}</td>
+          <td style="color:{RED}">{_pct(s['pct_lost_half'], plus=False)}</td>
+          <td style="color:{GREEN}">{_pct(s['pct_doubled'], plus=False)}</td>
+          <td style="color:{RED}">{_pct(s['median_pessimistic'])}</td>
+        </tr>"""
+
+    dist_svg = _bar_dist(summary.get("dist_12m", []))
+    year_svg = _grouped_year_chart(summary.get("by_year", []))
+
+    n_delisted = h12.get("n_delisted", 0)
+    n_positions = h12.get("n", 0)
+
+    verdict = _verdict(w)
+
+    html_out = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhoenixPicks — Strategy Backtest</title>
+<style>
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{ font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1a1a1a; }}
+  .header {{ background: #0f172a; color: white; padding: 30px 40px; }}
+  .header h1 {{ font-size: 1.7rem; font-weight: 800; }}
+  .header .meta {{ color: #94a3b8; font-size: 0.85rem; margin-top: 6px; }}
+  .stats {{ display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap; }}
+  .stat {{ background: rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 18px; min-width: 130px; }}
+  .stat .n {{ font-size: 1.5rem; font-weight: 800; }}
+  .stat .l {{ font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }}
+  .stat .sub {{ font-size: 0.72rem; color: #cbd5e1; margin-top: 4px; }}
+  .container {{ max-width: 1000px; margin: 0 auto; padding: 32px 24px 60px; }}
+  .section-title {{ font-size: 1.1rem; font-weight: 700; color: #374151; margin: 40px 0 8px; }}
+  .section-sub {{ color: #64748b; font-size: 0.88rem; margin-bottom: 18px; }}
+  .card {{ background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); padding: 24px; margin-bottom: 8px; overflow-x: auto; }}
+  table.data {{ width: 100%; border-collapse: collapse; font-size: 0.86rem; }}
+  table.data th {{ background: #f1f5f9; text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; padding: 9px 10px; white-space: nowrap; }}
+  table.data td {{ padding: 10px; border-top: 1px solid #e5e7eb; white-space: nowrap; }}
+  .verdict {{ background: #ecfdf5; border-left: 4px solid {GREEN}; border-radius: 8px; padding: 18px 22px; font-size: 0.95rem; line-height: 1.6; color: #14532d; }}
+  .verdict.warn {{ background: #fef2f2; border-color: {RED}; color: #7f1d1d; }}
+  .caveat {{ background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 18px 22px; font-size: 0.86rem; line-height: 1.65; color: #713f12; }}
+  .caveat h3 {{ font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; color: #92400e; }}
+  .caveat ul {{ margin: 0 0 0 18px; }}
+  .caveat li {{ margin-bottom: 6px; }}
+  footer {{ text-align: center; color: #94a3b8; font-size: 0.75rem; padding: 32px; }}
+  footer a {{ color: #94a3b8; }}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🔥 PhoenixPicks — Does It Actually Work?</h1>
+  <div class="meta">Generated {generated} &nbsp;·&nbsp; US stocks down ≥{abs(drop):.0f}% (52-week), est. market cap &gt;${cap}M &nbsp;·&nbsp; {summary['n_cohorts']} monthly cohorts</div>
+  <div class="stats">
+    {stat_card("Cohort entries", f"{summary['n_memberships']:,}", f"{summary['n_unique']:,} unique tickers")}
+    {stat_card("Avg / month", f"{summary['avg_cohort']:.0f}", "stocks meeting screen")}
+    {stat_card("12m median", _pct(h12.get('median')), f"vs SPY {_pct(h12.get('spy_median'))}")}
+    {stat_card("Beat SPY (12m)", _pct(h12.get('pct_beat_spy'), plus=False), "of positions")}
+    {stat_card("Lost ≥50% (12m)", _pct(h12.get('pct_lost_half'), plus=False), "of positions")}
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="verdict {'warn' if not verdict['positive'] else ''}">{verdict['text']}</div>
+
+  <div class="section-title">Forward returns by holding period</div>
+  <div class="section-sub">Each row: buy every stock in every monthly cohort, hold for the period, equal-weighted. "Delisted-adjusted" replaces any position that stopped trading mid-window with −100%.</div>
+  <div class="card">
+    <table class="data">
+      <thead><tr>
+        <th>Hold</th><th>Positions</th><th>Median</th><th>SPY median</th><th>Edge</th>
+        <th>Beat SPY</th><th>Positive</th><th>Lost ≥50%</th><th>Doubled+</th><th>Delisted-adj median</th>
+      </tr></thead>
+      <tbody>{window_rows}</tbody>
+    </table>
+  </div>
+
+  <div class="section-title">Distribution of 12-month outcomes</div>
+  <div class="section-sub">How the individual positions actually landed — the shape matters more than the average.</div>
+  <div class="card">{dist_svg}</div>
+
+  <div class="section-title">Strategy vs SPY, by cohort year (12-month median)</div>
+  <div class="section-sub">Does the edge persist across regimes, or is it one or two lucky years?</div>
+  <div class="card">{year_svg}</div>
+
+  <div class="section-title">Read this before trusting the numbers</div>
+  <div class="caveat">
+    <h3>Survivorship bias — the big one</h3>
+    <p>The universe is <strong>today's listed US common stocks</strong>. A company that fell 75%+ and later went bankrupt or was taken under is largely <em>absent</em> from the data, so the surviving winners are over-represented. In this run the delisted-adjustment caught <strong>{n_delisted} mid-window delistings out of {n_positions:,} positions</strong> — effectively zero — which is itself the tell: the dataset is built from names that are <em>still listed today</em>, so the losers that went to zero were never in it to begin with. That makes the "Delisted-adjusted" column nearly identical to the raw one and means <strong>even these grim numbers are an optimistic ceiling, not a floor.</strong></p>
+    <h3 style="margin-top:14px">Other limitations</h3>
+    <ul>
+      <li>Market cap at each historical date is estimated as <em>current cap × (price then ÷ price now)</em>, assuming constant share count. Buybacks and dilution distort this; delisted names fall back to a $2M median dollar-volume liquidity filter.</li>
+      <li>Prices are split/dividend-adjusted (Yahoo auto-adjust). No transaction costs, slippage, or bid-ask spread — real small-cap execution is worse.</li>
+      <li>Equal-weighted, no position sizing or stop-losses. The disqualifier and 100-point scorer from the live report are <em>not</em> applied here — this tests the raw price screen only.</li>
+      <li>Overlapping cohorts share market regimes, so monthly results are not independent; treat per-year medians as the honest unit.</li>
+    </ul>
+  </div>
+
+  <footer>PhoenixPicks backtest · price data via Yahoo Finance · <a href="index.html">back to reports</a></footer>
+</div>
+</body>
+</html>"""
+
+    DOCS_DIR.mkdir(exist_ok=True)
+    out = DOCS_DIR / "backtest.html"
+    out.write_text(html_out, encoding="utf-8")
+    return out
+
+
+def _verdict(w: dict) -> dict:
+    """One-paragraph plain-English read of the 12m result."""
+    s = w.get("12m")
+    if not s:
+        return {"positive": False, "text": "Not enough forward data to judge."}
+    edge = s["median"] - s["spy_median"]
+    beat = s["pct_beat_spy"]
+    pess = s["median_pessimistic"]
+    positive = edge > 0 and pess > s["spy_median"] * 0.5
+    if edge > 0 and pess >= 0:
+        txt = (f"<strong>Mixed-to-positive.</strong> Over 12 months the median beaten-down stock returned "
+               f"{s['median']:+.1%} vs SPY's {s['spy_median']:+.1%} — an edge of {edge:+.1%}, with "
+               f"{beat:.0%} of positions beating the index. Even after marking delisted names to −100%, the "
+               f"median stays at {pess:+.1%}. The catch: {s['pct_lost_half']:.0%} of positions still lost half "
+               f"their value, so the average hides a wide, risky spread — and survivorship bias inflates the upside.")
+    elif edge > 0:
+        txt = (f"<strong>Fragile edge.</strong> The raw median ({s['median']:+.1%}) beats SPY ({s['spy_median']:+.1%}), "
+               f"but once delisted positions are marked to −100% the median collapses to {pess:+.1%}. The apparent "
+               f"edge is largely survivorship bias: the winners are visible, many of the losers have vanished from the data.")
+    else:
+        txt = (f"<strong>No edge.</strong> The median beaten-down stock returned {s['median']:+.1%} over 12 months vs "
+               f"SPY's {s['spy_median']:+.1%}. Buying stocks simply because they fell 75% did not, on this data, beat "
+               f"just holding the index — and that's <em>before</em> accounting for the delisted losers missing from the sample.")
+    return {"positive": positive, "text": txt}

@@ -15,6 +15,7 @@ from src.screener import get_candidates
 from src.disqualifier import run_disqualifier
 from src.scorer import score_all
 from src.report_generator import generate
+from src.basket import build_basket, write_csv
 
 
 def main():
@@ -27,6 +28,8 @@ def main():
                         help="Comma-separated tickers to score directly (skips screening)")
     parser.add_argument("--min-cap", type=int, default=300,
                         help="Minimum market cap in $M (default: 300)")
+    parser.add_argument("--budget", type=float, default=500.0,
+                        help="Monthly buy-basket budget in $ (default: 500; 0 disables)")
     args = parser.parse_args()
 
     month = args.month
@@ -69,9 +72,19 @@ def main():
     print(f"\n[main] Step 3: Scoring {len(passing)} candidates...")
     scores = score_all(passing, month)
 
-    # Step 4: Generate report
-    print(f"\n[main] Step 4: Generating report...")
-    report_path = generate(scores, month, len(candidates), num_disqualified)
+    # Step 4: Build monthly buy basket (plan only — never places a trade)
+    basket = []
+    if args.budget > 0 and scores:
+        basket = build_basket(scores, budget=args.budget)
+        csv_path = write_csv(basket, month)
+        print(f"\n[main] Basket ({len(basket)} positions, ${args.budget:.0f}): {csv_path}")
+        for o in basket:
+            print(f"    {o.ticker:8s}  ${o.dollars:7.2f}  ({o.pct*100:4.1f}%)  {o.action}")
+
+    # Step 5: Generate report
+    print(f"\n[main] Step 5: Generating report...")
+    report_path = generate(scores, month, len(candidates), num_disqualified,
+                           basket=basket, budget=args.budget)
 
     # Summary
     print(f"\n{'='*60}")

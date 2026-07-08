@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bounce-Back Candidates — {{ month_label }}</title>
+  <title>PhoenixPicks — {{ month_label }}</title>
   <style>
     :root {
       --green: #16a34a; --green-bg: #dcfce7;
@@ -94,8 +94,8 @@
 <body>
 
 <div class="header">
-  <h1>Bounce-Back Candidates — {{ month_label }}</h1>
-  <div class="meta">Generated {{ generated_at }} &nbsp;·&nbsp; US stocks down ≥75% (52-week), market cap &gt;$300M</div>
+  <h1>🔥 PhoenixPicks — {{ month_label }}</h1>
+  <div class="meta">AI-screened stocks left for dead — down ≥75% (52-week), market cap &gt;$300M — hunting the ones that rise from the ashes &nbsp;·&nbsp; Generated {{ generated_at }}</div>
   <div class="stats">
     <div class="stat"><div class="n">{{ num_screened }}</div><div class="l">Screened</div></div>
     <div class="stat"><div class="n">{{ num_disqualified }}</div><div class="l">Disqualified</div></div>
@@ -105,6 +105,44 @@
 </div>
 
 <div class="container">
+
+  {# ── Monthly buy basket ── #}
+  {% if basket %}
+  <div class="section-title">📥 Monthly Basket — ${{ "%.0f"|format(budget) }}</div>
+  <table class="summary-table" style="margin-bottom:12px">
+    <thead>
+      <tr><th>Ticker</th><th>Company</th><th>Rating</th><th>Score</th><th style="text-align:right">Buy</th><th style="text-align:right">Weight</th></tr>
+    </thead>
+    <tbody>
+      {% for o in basket %}
+      <tr>
+        <td><a href="#{{ o.ticker }}">{{ o.ticker }}</a></td>
+        <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ o.company }}</td>
+        <td>
+          {% if o.action.startswith("Strong") %}<span class="badge badge-green">Strong Buy</span>
+          {% elif o.action == "Watchlist" %}<span class="badge badge-yellow">Watchlist</span>
+          {% else %}<span class="badge badge-gray">Fill</span>{% endif %}
+        </td>
+        <td>{{ "%.0f"|format(o.score) }}/100</td>
+        <td style="text-align:right;font-weight:700">${{ "%.2f"|format(o.dollars) }}</td>
+        <td style="text-align:right;color:#64748b">{{ "%.1f"|format(o.pct * 100) }}%</td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <td colspan="4" style="font-weight:700;text-align:right">Total</td>
+        <td style="text-align:right;font-weight:800">${{ "%.2f"|format(basket | sum(attribute="dollars")) }}</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="font-size:0.82rem;color:#64748b;margin-bottom:8px">
+    Equal-weight across actionable picks (Watchlist or better). Execute in Fidelity via
+    <strong>Basket Portfolios</strong> or <strong>Stocks by the Slice</strong> (dollar-based fractional orders).
+    Download: <a href="{{ month }}-basket.csv">{{ month }}-basket.csv</a>.
+    <br><em>Not investment advice. Review each name before buying — see the historical
+    <a href="../backtest.html">backtest</a> for how this strategy has actually performed.</em>
+  </p>
+  {% endif %}
 
   {# ── Summary table ── #}
   {% if scores %}

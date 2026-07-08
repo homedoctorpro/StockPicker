@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhoenixPicks — Strategy Backtest</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1a1a1a; }
+  .header { background: #0f172a; color: white; padding: 30px 40px; }
+  .header h1 { font-size: 1.7rem; font-weight: 800; }
+  .header .meta { color: #94a3b8; font-size: 0.85rem; margin-top: 6px; }
+  .stats { display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap; }
+  .stat { background: rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 18px; min-width: 130px; }
+  .stat .n { font-size: 1.5rem; font-weight: 800; }
+  .stat .l { font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+  .stat .sub { font-size: 0.72rem; color: #cbd5e1; margin-top: 4px; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 32px 24px 60px; }
+  .section-title { font-size: 1.1rem; font-weight: 700; color: #374151; margin: 40px 0 8px; }
+  .section-sub { color: #64748b; font-size: 0.88rem; margin-bottom: 18px; }
+  .card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); padding: 24px; margin-bottom: 8px; overflow-x: auto; }
+  table.data { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  table.data th { background: #f1f5f9; text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; padding: 9px 10px; white-space: nowrap; }
+  table.data td { padding: 10px; border-top: 1px solid #e5e7eb; white-space: nowrap; }
+  .verdict { background: #ecfdf5; border-left: 4px solid #16a34a; border-radius: 8px; padding: 18px 22px; font-size: 0.95rem; line-height: 1.6; color: #14532d; }
+  .verdict.warn { background: #fef2f2; border-color: #dc2626; color: #7f1d1d; }
+  .caveat { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 18px 22px; font-size: 0.86rem; line-height: 1.65; color: #713f12; }
+  .caveat h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; color: #92400e; }
+  .caveat ul { margin: 0 0 0 18px; }
+  .caveat li { margin-bottom: 6px; }
+  footer { text-align: center; color: #94a3b8; font-size: 0.75rem; padding: 32px; }
+  footer a { color: #94a3b8; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🔥 PhoenixPicks — Does It Actually Work?</h1>
+  <div class="meta">Generated July 08, 2026 &nbsp;·&nbsp; US stocks down ≥75% (52-week), est. market cap &gt;$300M &nbsp;·&nbsp; 114 monthly cohorts</div>
+  <div class="stats">
+    <div class="stat"><div class="n">9,072</div><div class="l">Cohort entries</div><div class="sub">984 unique tickers</div></div>
+    <div class="stat"><div class="n">80</div><div class="l">Avg / month</div><div class="sub">stocks meeting screen</div></div>
+    <div class="stat"><div class="n">-60.5%</div><div class="l">12m median</div><div class="sub">vs SPY +16.6%</div></div>
+    <div class="stat"><div class="n">18.5%</div><div class="l">Beat SPY (12m)</div><div class="sub">of positions</div></div>
+    <div class="stat"><div class="n">56.7%</div><div class="l">Lost ≥50% (12m)</div><div class="sub">of positions</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="verdict warn"><strong>No edge.</strong> The median beaten-down stock returned -60.5% over 12 months vs SPY's +16.6%. Buying stocks simply because they fell 75% did not, on this data, beat just holding the index — and that's <em>before</em> accounting for the delisted losers missing from the sample.</div>
+
+  <div class="section-title">Forward returns by holding period</div>
+  <div class="section-sub">Each row: buy every stock in every monthly cohort, hold for the period, equal-weighted. "Delisted-adjusted" replaces any position that stopped trading mid-window with −100%.</div>
+  <div class="card">
+    <table class="data">
+      <thead><tr>
+        <th>Hold</th><th>Positions</th><th>Median</th><th>SPY median</th><th>Edge</th>
+        <th>Beat SPY</th><th>Positive</th><th>Lost ≥50%</th><th>Doubled+</th><th>Delisted-adj median</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:700">3m</td>
+          <td>9,038</td>
+          <td>-22.2%</td>
+          <td style="color:#64748b">+4.2%</td>
+          <td style="color:#dc2626;font-weight:600">-26.4%</td>
+          <td>27.9%</td>
+          <td>30.1%</td>
+          <td style="color:#dc2626">23.8%</td>
+          <td style="color:#16a34a">4.7%</td>
+          <td style="color:#dc2626">-22.2%</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700">6m</td>
+          <td>8,987</td>
+          <td>-39.5%</td>
+          <td style="color:#64748b">+7.6%</td>
+          <td style="color:#dc2626;font-weight:600">-47.2%</td>
+          <td>22.3%</td>
+          <td>25.5%</td>
+          <td style="color:#dc2626">41.9%</td>
+          <td style="color:#16a34a">5.7%</td>
+          <td style="color:#dc2626">-39.5%</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700">12m</td>
+          <td>8,738</td>
+          <td>-60.5%</td>
+          <td style="color:#64748b">+16.6%</td>
+          <td style="color:#dc2626;font-weight:600">-77.1%</td>
+          <td>18.5%</td>
+          <td>22.4%</td>
+          <td style="color:#dc2626">56.7%</td>
+          <td style="color:#16a34a">8.3%</td>
+          <td style="color:#dc2626">-60.5%</td>
+        </tr></tbody>
+    </table>
+  </div>
+
+  <div class="section-title">Distribution of 12-month outcomes</div>
+  <div class="section-sub">How the individual positions actually landed — the shape matters more than the average.</div>
+  <div class="card"><svg viewBox="0 0 710 288" width="100%" style="max-width:720px" role="img"><text x="122" y="17.0" text-anchor="end" font-size="12" fill="#475569">≤-75%</text><rect x="130" y="0" width="520.0" height="26" rx="3" fill="#dc2626" opacity="0.82"/><text x="656.0" y="17.0" font-size="11.5" fill="#334155" font-weight="600">3407</text><text x="122" y="49.0" text-anchor="end" font-size="12" fill="#475569">-75 to -50%</text><rect x="130" y="32" width="235.8" height="26" rx="3" fill="#dc2626" opacity="0.82"/><text x="371.8" y="49.0" font-size="11.5" fill="#334155" font-weight="600">1545</text><text x="122" y="81.0" text-anchor="end" font-size="12" fill="#475569">-50 to -25%</text><rect x="130" y="64" width="159.5" height="26" rx="3" fill="#16a34a" opacity="0.82"/><text x="295.5" y="81.0" font-size="11.5" fill="#334155" font-weight="600">1045</text><text x="122" y="113.0" text-anchor="end" font-size="12" fill="#475569">-25 to 0%</text><rect x="130" y="96" width="120.0" height="26" rx="3" fill="#dc2626" opacity="0.82"/><text x="256.0" y="113.0" font-size="11.5" fill="#334155" font-weight="600">786</text><text x="122" y="145.0" text-anchor="end" font-size="12" fill="#475569">0 to +25%</text><rect x="130" y="128" width="67.3" height="26" rx="3" fill="#16a34a" opacity="0.82"/><text x="203.3" y="145.0" font-size="11.5" fill="#334155" font-weight="600">441</text><text x="122" y="177.0" text-anchor="end" font-size="12" fill="#475569">+25 to +50%</text><rect x="130" y="160" width="52.5" height="26" rx="3" fill="#16a34a" opacity="0.82"/><text x="188.5" y="177.0" font-size="11.5" fill="#334155" font-weight="600">344</text><text x="122" y="209.0" text-anchor="end" font-size="12" fill="#475569">+50 to +100%</text><rect x="130" y="192" width="68.7" height="26" rx="3" fill="#16a34a" opacity="0.82"/><text x="204.7" y="209.0" font-size="11.5" fill="#334155" font-weight="600">450</text><text x="122" y="241.0" text-anchor="end" font-size="12" fill="#475569">+100 to +200%</text><rect x="130" y="224" width="52.8" height="26" rx="3" fill="#16a34a" opacity="0.82"/><text x="188.8" y="241.0" font-size="11.5" fill="#334155" font-weight="600">346</text><text x="122" y="273.0" text-anchor="end" font-size="12" fill="#475569">&gt;+200%</text><rect x="130" y="256" width="57.1" height="26" rx="3" fill="#16a34a" opacity="0.82"/><text x="193.1" y="273.0" font-size="11.5" fill="#334155" font-weight="600">374</text></svg></div>
+
+  <div class="section-title">Strategy vs SPY, by cohort year (12-month median)</div>
+  <div class="section-sub">Does the edge persist across regimes, or is it one or two lucky years?</div>
+  <div class="card"><svg viewBox="0 0 760 300" width="100%" style="max-width:760px" role="img"><rect x="44" y="2" width="11" height="11" rx="2" fill="#2563eb"/><text x="60" y="11" font-size="11" fill="#475569">Strategy median</text><rect x="174" y="2" width="11" height="11" rx="2" fill="#64748b"/><text x="190" y="11" font-size="11" fill="#475569">SPY median</text><line x1="44" y1="100.9" x2="748" y2="100.9" stroke="#cbd5e1" stroke-width="1"/><text x="36" y="24.0" text-anchor="end" font-size="10.5" fill="#94a3b8">+50%</text><text x="36" y="141.0" text-anchor="end" font-size="10.5" fill="#94a3b8">-22%</text><text x="36" y="258.0" text-anchor="end" font-size="10.5" fill="#94a3b8">-95%</text><rect x="57.1" y="100.9" width="24.0" height="75.6" rx="2" fill="#2563eb" opacity="0.9"/><rect x="83.1" y="77.4" width="24.0" height="23.5" rx="2" fill="#64748b" opacity="0.9"/><text x="83.1" y="270" text-anchor="middle" font-size="10.5" fill="#64748b">17</text><text x="83.1" y="284" text-anchor="middle" font-size="9" fill="#cbd5e1">n=441</text><rect x="135.3" y="100.9" width="24.0" height="100.2" rx="2" fill="#2563eb" opacity="0.9"/><rect x="161.3" y="82.4" width="24.0" height="18.5" rx="2" fill="#64748b" opacity="0.9"/><text x="161.3" y="270" text-anchor="middle" font-size="10.5" fill="#64748b">18</text><text x="161.3" y="284" text-anchor="middle" font-size="9" fill="#cbd5e1">n=510</text><rect x="213.6" y="100.9" width="24.0" height="63.1" rx="2" fill="#2563eb" opacity="0.9"/><rect x="239.6" y="79.4" width="24.0" height="21.5" rx="2" fill="#64748b" opacity="0.9"/><text x="239.6" y="270" text-anchor="middle" font-size="10.5" fill="#64748b">19</text><text x="239.6" y="284" text-anchor="middle" font-size="9" fill="#cbd5e1">n=887</text><rect x="291.8" y="23.4" width="24.0" height="77.5" rx="2" fill="#2563eb" opacity="0.9"/><rect x="317.8" y="35.8" width="24.0" height="65.1" rx="2" fill="#64748b" opacity="0.9"/><text x="317.8" y="270" text-anchor="middle" font-size="10.5" fill="#64748b">20</text><text x="317.8" y="284" text-anchor="middle" font-size="9" fill="#cbd5e1">n=782</text><rect x="370.0" y="100.9" width="24.0" height="117.4" rx="2" fill="#2563eb" opacity="0.9"/><rect x="396.0" y="100.9" width="24.0" height="18.2" rx="2" fill="#64748b" opacity="0.9"/><text x="396.0" y="270" text-anchor="middle" font-size="10.5" fill="#64748b">21</text><text x="396.0" y="284" text-anchor="middle" font-size="9" fill="#cbd5e1">n=226</text><rect x="448.2" y="100.9" width="24.0" height="81.2" rx="2" fill="#2563eb" opacity="0.9"/><rect x="474.2" y="80.5" width="24.0" height="20.4" rx="2" fill="#64748b" opacity="0.9"/><text x="474.2" y="270" text-anchor="middle" font-size="10.5" fill="#64748b">22</text><text x="474.2" y="284" text-anchor="middle" font-size="9" fill="#cbd5e1">n=2663</text><rect x="526.4" y="100.9" width="24.0" height="128.7" rx="2" fill="#2563eb" opacity="0.9"/><rect x="552.4" y="55.5" width="24.0" height="45.4" rx="2" fill="#64748b" opacity="0.9"/><text x="552.4" y="270" text-anchor="middle" font-size="10.5" fill="#64748b">23</text><text x="552.4" y="284" text-anchor="middle" font-size="9" fill="#cbd5e1">n=1467</text><rect x="604.7" y="100.9" width="24.0" height="143.4" rx="2" fill="#2563eb" opacity="0.9"/><rect x="630.7" y="76.0" width="24.0" height="25.0" rx="2" fill="#64748b" opacity="0.9"/><text x="630.7" y="270" text-anchor="middle" font-size="10.5" fill="#64748b">24</text><text x="630.7" y="284" text-anchor="middle" font-size="9" fill="#cbd5e1">n=1313</text><rect x="682.9" y="100.9" width="24.0" height="153.1" rx="2" fill="#2563eb" opacity="0.9"/><rect x="708.9" y="71.0" width="24.0" height="29.9" rx="2" fill="#64748b" opacity="0.9"/><text x="708.9" y="270" text-anchor="middle" font-size="10.5" fill="#64748b">25</text><text x="708.9" y="284" text-anchor="middle" font-size="9" fill="#cbd5e1">n=449</text></svg></div>
+
+  <div class="section-title">Read this before trusting the numbers</div>
+  <div class="caveat">
+    <h3>Survivorship bias — the big one</h3>
+    <p>The universe is <strong>today's listed US common stocks</strong>. A company that fell 75%+ and later went bankrupt or was taken under is largely <em>absent</em> from the data, so the surviving winners are over-represented. In this run the delisted-adjustment caught <strong>0 mid-window delistings out of 8,738 positions</strong> — effectively zero — which is itself the tell: the dataset is built from names that are <em>still listed today</em>, so the losers that went to zero were never in it to begin with. That makes the "Delisted-adjusted" column nearly identical to the raw one and means <strong>even these grim numbers are an optimistic ceiling, not a floor.</strong></p>
+    <h3 style="margin-top:14px">Other limitations</h3>
+    <ul>
+      <li>Market cap at each historical date is estimated as <em>current cap × (price then ÷ price now)</em>, assuming constant share count. Buybacks and dilution distort this; delisted names fall back to a $2M median dollar-volume liquidity filter.</li>
+      <li>Prices are split/dividend-adjusted (Yahoo auto-adjust). No transaction costs, slippage, or bid-ask spread — real small-cap execution is worse.</li>
+      <li>Equal-weighted, no position sizing or stop-losses. The disqualifier and 100-point scorer from the live report are <em>not</em> applied here — this tests the raw price screen only.</li>
+      <li>Overlapping cohorts share market regimes, so monthly results are not independent; treat per-year medians as the honest unit.</li>
+    </ul>
+  </div>
+
+  <footer>PhoenixPicks backtest · price data via Yahoo Finance · <a href="index.html">back to reports</a></footer>
+</div>
+</body>
+</html>
