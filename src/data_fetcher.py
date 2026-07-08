@@ -111,6 +111,42 @@ def get_price_history(ticker: str, month: str, period: str = "2y") -> list[dict]
     return data
 
 
+def get_technicals(ticker: str, month: str) -> dict:
+    """
+    Point-in-time price/volume signals validated by the backtest:
+    decline depth, position vs 50/200-day MA, distance off the 52-week low,
+    and 60-day median dollar volume (liquidity). Cached like price history.
+    Returns {} on failure so callers can treat data as unknown.
+    """
+    key = f"technicals_{ticker}"
+    cached = _cache_get(month, key, ttl_seconds=86400)
+    if cached is not None:
+        return cached
+    try:
+        hist = yf.Ticker(ticker).history(period="1y")
+        closes = hist["Close"].dropna()
+        vols = hist["Volume"].reindex(closes.index)
+        if len(closes) < 30:
+            data = {}
+        else:
+            last = float(closes.iloc[-1])
+            ma50 = float(closes.tail(50).mean())
+            ma200 = float(closes.tail(200).mean())
+            low52 = float(closes.min())
+            dollar_vol = (closes * vols).dropna()
+            data = {
+                "decline_52w_pct": (last / float(closes.iloc[0]) - 1) * 100,
+                "above_50dma": last > ma50,
+                "above_200dma": last > ma200,
+                "pct_above_52w_low": (last - low52) / low52 if low52 > 0 else None,
+                "median_dollar_vol_60d": float(dollar_vol.tail(60).median()) if len(dollar_vol) else None,
+            }
+    except Exception:
+        data = {}
+    _cache_set(month, key, data)
+    return data
+
+
 def get_recommendations(ticker: str, month: str) -> list[dict]:
     key = f"recs_{ticker}"
     cached = _cache_get(month, key, ttl_seconds=86400)

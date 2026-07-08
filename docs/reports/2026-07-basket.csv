@@ -1,4 +1,4 @@
 Ticker,Company,Amount_USD,Percent,Score,Action
-VRRM,Verra Mobility Corporation,166.66,0.3333,59.0,Watchlist
-MSTR,Strategy Inc,166.67,0.3333,57.0,Watchlist
-GOGO,Gogo Inc.,166.67,0.3333,55.0,Watchlist
+VRRM,Verra Mobility Corporation,166.66,0.3333,57.0,Watchlist
+GOGO,Gogo Inc.,166.67,0.3333,53.0,Pass
+MSTR,Strategy Inc,166.67,0.3333,53.0,Pass

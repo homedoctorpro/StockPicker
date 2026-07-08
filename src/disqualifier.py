@@ -7,9 +7,16 @@ from dataclasses import dataclass, field
 from .data_fetcher import (
     get_financials,
     get_recent_filings,
+    get_technicals,
     get_ticker_info,
     search_filing_text,
 )
+
+# Backtest-derived floors (July 2026): the illiquid (<$1M/day) and deepest-
+# decline (worse than -90%) buckets beat SPY only ~14% and ~10% of the time
+# and dominated the losses. Screen them out up front.
+MIN_DOLLAR_VOL = 1_000_000
+MAX_DECLINE_PCT = -90.0
 
 
 @dataclass
@@ -143,6 +150,16 @@ def check(ticker: str, month: str) -> DisqualResult:
     has_enforcement = search_filing_text(ticker, month, "securities fraud", "8-K")
     if has_enforcement:
         result.flags.append("Potential SEC enforcement action (securities fraud in 8-K)")
+
+    # 8 & 9. Backtest-derived "avoid the worst" floors (liquidity, decline depth)
+    tech = get_technicals(ticker, month)
+    dvol = tech.get("median_dollar_vol_60d")
+    if dvol is not None and dvol < MIN_DOLLAR_VOL:
+        result.flags.append(f"Illiquid: ${dvol/1e6:.2f}M/day median volume (<$1M floor — worst backtest bucket)")
+
+    decline = tech.get("decline_52w_pct")
+    if decline is not None and decline <= MAX_DECLINE_PCT:
+        result.flags.append(f"Deepest-decile decline ({decline:.0f}% 52-wk) — down-90%+ names rarely recover")
 
     if result.flags:
         result.passed = False

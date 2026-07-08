@@ -20,6 +20,7 @@ from .data_fetcher import (
     get_recent_filings,
     get_sector_gross_margin_median,
     get_sector_recovery_score,
+    get_technicals,
     get_ticker_info,
     search_filing_text,
 )
@@ -563,56 +564,48 @@ SECTOR_ETFS = {
 }
 
 
-def score_decline_reason(ticker: str, info: dict, month: str) -> CategoryScore:
-    import yfinance as yf
-    from datetime import datetime, timedelta
+def score_decline_reason(ticker: str, info: dict, month: str, tech: dict) -> CategoryScore:
+    """
+    Max 10. Split between "is the decline recoverable?" (filing context, max 3)
+    and backtest-validated price action (max 7): reclaiming the 200-day MA and
+    already being off the 52-week low both marked higher win rates.
+    """
     details = {}
     notes = []
 
-    sector = info.get("sector", "Unknown")
-    etf = SECTOR_ETFS.get(sector)
-
-    # Check sector ETF performance over same 52-week window
-    sector_declined = False
-    if etf:
-        try:
-            end = datetime.today()
-            start = end - timedelta(days=370)
-            hist = yf.download(etf, start=start.strftime("%Y-%m-%d"), end=end.strftime("%Y-%m-%d"),
-                               auto_adjust=True, progress=False, threads=False)
-            if not hist.empty:
-                closes = hist["Close"].dropna()
-                sector_perf = (closes.iloc[-1] - closes.iloc[0]) / closes.iloc[0]
-                details["sector_etf"] = etf
-                details["sector_etf_perf"] = float(sector_perf.iloc[0]) if hasattr(sector_perf, "iloc") else float(sector_perf)
-                if sector_perf <= -0.20:
-                    sector_declined = True
-                    notes.append(f"Sector ETF ({etf}) also down {sector_perf:.1%} — macro/sector rotation factor")
-        except Exception:
-            pass
-
-    # Check for executive departure or restatement via 8-K items
+    # --- Filing context (max 3) ---
     has_exec_departure = search_filing_text(ticker, month, "chief executive", "8-K")
     has_restatement = search_filing_text(ticker, month, "restatement", "8-K")
     details["exec_departure_signal"] = has_exec_departure
     details["restatement_signal"] = has_restatement
-
     if has_restatement:
-        score = 2
-        notes.append("Restatement detected in 8-K — accounting risk")
-    elif sector_declined:
-        score = 10
-        notes.append("Likely macro/sector rotation — business may be intact")
+        filing_score = 0
+        notes.append("RISK: Restatement detected in 8-K — accounting risk")
     elif has_exec_departure:
-        score = 6
-        notes.append("Executive departure — new management may be catalyst")
+        filing_score = 2
+        notes.append("Executive departure — new management may be a catalyst")
     else:
-        score = 5  # neutral, cannot auto-classify
-        notes.append("Decline reason unclear from available data — review manually")
+        filing_score = 3
+
+    # --- Price action (max 7), backtest-validated ---
+    above_200 = tech.get("above_200dma")
+    off_low = tech.get("pct_above_52w_low")
+    details["above_200dma"] = above_200
+    details["pct_above_52w_low"] = off_low
+
+    tech_score = 0
+    if above_200 is True:
+        tech_score += 4
+        notes.append("Price reclaimed its 200-day average — trend turning up (backtest: higher win rate)")
+    if off_low is not None and off_low >= 0.20:
+        tech_score += 3
+        notes.append(f"Trading {off_low:.0%} above the 52-week low — bottom likely in")
+    elif off_low is not None and off_low <= 0.05:
+        notes.append("Still pinned to the 52-week low — no confirmation of a bottom yet")
 
     return CategoryScore(
-        name="Decline Reason",
-        score=score,
+        name="Decline Reason & Setup",
+        score=min(10, filing_score + tech_score),
         max_score=10,
         details=details,
         notes=notes,
@@ -624,14 +617,33 @@ def score_decline_reason(ticker: str, info: dict, month: str) -> CategoryScore:
 # ---------------------------------------------------------------------------
 
 def score_recovery_comps(info: dict) -> CategoryScore:
+    """
+    Max 5: sector base rate (max 3) + size tilt (max 2). The backtest showed
+    $300M-1B survivors beat SPY far more often (26%) than >$5B fallers (11%),
+    so smaller-but-not-tiny caps score higher.
+    """
     sector = info.get("sector", "Unknown")
-    score = get_sector_recovery_score(sector)
+    sector_score = min(3, round(get_sector_recovery_score(sector) * 0.6))
+    notes = [f"Sector base rate for {sector}"]
+
+    cap = info.get("marketCap") or 0
+    if cap <= 0:
+        size_score = 1
+    elif cap < 1e9:
+        size_score = 2
+        notes.append("$300M-1B cap — best-performing size bucket in the backtest")
+    elif cap < 5e9:
+        size_score = 1
+    else:
+        size_score = 0
+        notes.append("Large cap (>$5B) that fell 75%+ — weakest recovery bucket historically")
+
     return CategoryScore(
         name="Recovery Comps",
-        score=score,
+        score=sector_score + size_score,
         max_score=5,
-        details={"sector": sector},
-        notes=[f"Sector base rate score for {sector}"],
+        details={"sector": sector, "market_cap": cap},
+        notes=notes,
     )
 
 
@@ -645,6 +657,7 @@ def score_ticker(ticker: str, month: str) -> StockScore | None:
         return None
 
     financials = get_financials(ticker, month)
+    tech = get_technicals(ticker, month)
 
     market_cap = info.get("marketCap", 0) or 0
     market_cap_mm = market_cap / 1_000_000
@@ -661,7 +674,7 @@ def score_ticker(ticker: str, month: str) -> StockScore | None:
         score_catalysts(ticker, info, month),
         score_business_quality(info, financials),
         score_valuation(ticker, info, financials, month),
-        score_decline_reason(ticker, info, month),
+        score_decline_reason(ticker, info, month, tech),
         score_recovery_comps(info),
     ]
 
