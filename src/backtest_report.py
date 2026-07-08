@@ -85,6 +85,99 @@ def _grouped_year_chart(by_year: list[dict]) -> str:
             f'{legend}{"".join(parts)}</svg>')
 
 
+def _feature_table(feat: dict) -> str:
+    """One characteristic → a table of buckets with a beat-SPY bar (0–50% scale)."""
+    rows = ""
+    for b in feat["buckets"]:
+        bar_w = min(1.0, b["pct_beat_spy"] / 0.50) * 120
+        med_color = GREEN if b["median"] >= 0 else RED
+        rows += f"""
+        <tr>
+          <td>{html.escape(b['label'])}</td>
+          <td style="text-align:right;color:#94a3b8">{b['n']:,}</td>
+          <td style="text-align:right;color:{med_color};font-weight:600">{b['median']:+.0%}</td>
+          <td style="text-align:right">{b['pct_doubled']:.0%}</td>
+          <td><div style="display:flex;align-items:center;gap:6px">
+            <div style="height:9px;width:{bar_w:.0f}px;background:{BLUE};border-radius:2px;opacity:.85"></div>
+            <span style="font-size:0.8rem;color:#475569">{b['pct_beat_spy']:.0%}</span></div></td>
+        </tr>"""
+    return f"""
+    <div style="margin-bottom:18px">
+      <div style="font-weight:700;font-size:0.9rem;color:#334155;margin-bottom:6px">{html.escape(feat['name'])}</div>
+      <table class="data" style="font-size:0.82rem">
+        <thead><tr><th>Bucket</th><th style="text-align:right">n</th><th style="text-align:right">Median 12m</th><th style="text-align:right">Doubled</th><th>Beat SPY</th></tr></thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>"""
+
+
+def _winners_section(wn: dict) -> str:
+    if not wn:
+        return ""
+    # top rebounders table
+    tr = ""
+    for r in wn["top_rebounders"][:12]:
+        tr += (f'<tr><td style="font-weight:700">{html.escape(r["ticker"])}</td>'
+               f'<td style="color:#64748b">{r["month"]}</td>'
+               f'<td style="text-align:right;color:{RED}">{r["perf52w"]:+.0%}</td>'
+               f'<td style="text-align:right;color:{GREEN};font-weight:700">+{r["ret_12m"]*100:,.0f}%</td></tr>')
+    n2020 = sum(1 for r in wn["top_rebounders"] if r["month"].startswith("2020"))
+    from collections import Counter
+    common = Counter(r["ticker"] for r in wn["top_rebounders"]).most_common(1)[0]
+
+    feat_html = "".join(_feature_table(f) for f in wn["features"])
+    stab = wn["stabilization"]
+
+    # Pull the headline separators by feature name (order-independent).
+    by_name = {f["name"]: f["buckets"] for f in wn["features"]}
+    liq = by_name["Liquidity (60-day median $ volume)"]
+    depth = by_name["Depth of decline at entry"]
+    capf = by_name["Estimated market cap at entry"]
+    liq_hi, liq_lo = liq[-1]["pct_beat_spy"], liq[0]["pct_beat_spy"]
+    depth_shallow, depth_deep = depth[0]["pct_beat_spy"], depth[-1]["pct_beat_spy"]
+    cap_small, cap_big = capf[0]["pct_beat_spy"], capf[-1]["pct_beat_spy"]
+
+    return f"""
+  <div class="section-title">Were there winners? Yes — but few, and clustered</div>
+  <div class="section-sub">A "winner" here is a position that actually rebounded, not just one that fell less.</div>
+  <div class="stats" style="margin:0 0 16px;display:flex;gap:16px;flex-wrap:wrap">
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 18px">
+      <div style="font-size:1.4rem;font-weight:800;color:{GREEN}">{wn['n_doubled']:,}</div>
+      <div style="font-size:0.72rem;color:#166534;text-transform:uppercase">Doubled in 12m ({wn['pct_doubled']:.1%})</div></div>
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 18px">
+      <div style="font-size:1.4rem;font-weight:800;color:{GREEN}">{wn['pct_up50']:.1%}</div>
+      <div style="font-size:0.72rem;color:#166534;text-transform:uppercase">Gained ≥50%</div></div>
+    <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:12px 18px">
+      <div style="font-size:1.4rem;font-weight:800;color:#334155">+{wn['best_ret']*100:,.0f}%</div>
+      <div style="font-size:0.72rem;color:#64748b;text-transform:uppercase">Best single outcome</div></div>
+  </div>
+  <div class="card">
+    <table class="data">
+      <thead><tr><th>Ticker</th><th>Entry</th><th style="text-align:right">Down (52w)</th><th style="text-align:right">12m return</th></tr></thead>
+      <tbody>{tr}</tbody>
+    </table>
+    <p style="font-size:0.82rem;color:#64748b;margin-top:10px">
+      The tail is real but <strong>concentrated</strong>: {n2020} of the top 12 rebounds began in 2020 (the COVID
+      crash-and-snap-back), and {html.escape(common[0])} alone appears {common[1]} times. A handful of biotech and
+      crypto-adjacent names in one regime drive most of the upside — not a repeatable, diversified edge.</p>
+  </div>
+
+  <div class="section-title">What characterized the winners?</div>
+  <div class="section-sub">Only features knowable <em>at entry</em> (price/volume). Bar = share of positions that beat SPY over 12 months.</div>
+  <div class="card">{feat_html}</div>
+
+  <div class="verdict warn">
+    <strong>The pattern is consistent — but not enough to flip the strategy.</strong> Survivors clustered where you'd
+    expect quality to hide: <strong>liquidity</strong> (&gt;$100M/day traded beat SPY {liq_hi:.0%} of the time vs
+    {liq_lo:.0%} for the illiquid microcaps), <strong>shallower declines</strong>
+    (down 75–80% beat SPY {depth_shallow:.0%} vs {depth_deep:.0%} for the down-90%+ wreckage), and
+    <strong>smaller-but-not-tiny caps</strong> ($300M–1B beat SPY {cap_small:.0%} vs {cap_big:.0%} for &gt;$5B). Waiting for the price to
+    reclaim its 200-day average helped too, but only {stab['stabilizing']['n']:,} entries ever qualified. Even the
+    best-characterised subgroup still beat the index less than half the time — the takeaway is a <em>filter to avoid the
+    worst</em> (illiquid, down-90%+, high-vol names), not a recipe that turns the screen into a winner.</div>
+"""
+
+
 def render(summary: dict) -> Path:
     w = summary["windows"]
     generated = datetime.now().strftime("%B %d, %Y")
@@ -121,6 +214,7 @@ def render(summary: dict) -> Path:
 
     dist_svg = _bar_dist(summary.get("dist_12m", []))
     year_svg = _grouped_year_chart(summary.get("by_year", []))
+    winners_html = _winners_section(summary.get("winners", {}))
 
     n_delisted = h12.get("n_delisted", 0)
     n_positions = h12.get("n", 0)
@@ -198,6 +292,8 @@ def render(summary: dict) -> Path:
   <div class="section-sub">Does the edge persist across regimes, or is it one or two lucky years?</div>
   <div class="card">{year_svg}</div>
 
+  {winners_html}
+
   <div class="section-title">Read this before trusting the numbers</div>
   <div class="caveat">
     <h3>Survivorship bias — the big one</h3>
@@ -206,7 +302,8 @@ def render(summary: dict) -> Path:
     <ul>
       <li>Market cap at each historical date is estimated as <em>current cap × (price then ÷ price now)</em>, assuming constant share count. Buybacks and dilution distort this; delisted names fall back to a $2M median dollar-volume liquidity filter.</li>
       <li>Prices are split/dividend-adjusted (Yahoo auto-adjust). No transaction costs, slippage, or bid-ask spread — real small-cap execution is worse.</li>
-      <li>Equal-weighted, no position sizing or stop-losses. The disqualifier and 100-point scorer from the live report are <em>not</em> applied here — this tests the raw price screen only.</li>
+      <li>Equal-weighted, no position sizing or stop-losses.</li>
+      <li><strong>The 100-point fundamental scorer is not replayed.</strong> It reads yfinance <code>.info</code> (short interest, analyst ratings, P/S, P/B) and financial statements, which are only served as <em>today's</em> snapshot — scoring a 2019 cohort with 2026 fundamentals would be lookahead bias. The "what characterized the winners" analysis therefore uses only <em>point-in-time price/volume features</em> that were genuinely observable on each entry date. A faithful fundamental replay is possible but needs point-in-time data (EDGAR XBRL for statements, FINRA for short interest) — a larger build.</li>
       <li>Overlapping cohorts share market regimes, so monthly results are not independent; treat per-year medians as the honest unit.</li>
     </ul>
   </div>
