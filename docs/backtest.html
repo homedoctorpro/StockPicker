@@ -435,6 +435,67 @@
     worst</em> (illiquid, down-90%+, high-vol names), not a recipe that turns the screen into a winner.</div>
 
 
+  
+  <div class="section-title">Does the fundamental scoring actually add alpha?</div>
+  <div class="section-sub">Point-in-time replay: each cohort's Survivability, gross-margin and valuation sub-scores
+    rebuilt from SEC EDGAR XBRL as filed on/before the entry date (no lookahead). 7,967 positions
+    scored (91% coverage). Bar = share that beat SPY.</div>
+  <div class="card">
+    <div style="font-weight:700;font-size:0.9rem;color:#334155;margin-bottom:6px">Forward return by fundamental-score quintile</div>
+    <table class="data" style="font-size:0.84rem">
+      <thead><tr><th>Fundamental score</th><th style="text-align:right">n</th><th style="text-align:right">Median 12m</th><th style="text-align:right">Doubled</th><th>Beat SPY</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:600">Q1 (worst)</td>
+          <td style="text-align:right;color:#94a3b8">1,729</td>
+          <td style="text-align:right;color:#dc2626;font-weight:600">-82%</td>
+          <td style="text-align:right">7%</td>
+          <td><div style="display:flex;align-items:center;gap:6px">
+            <div style="height:9px;width:32px;background:#2563eb;border-radius:2px;opacity:.85"></div>
+            <span style="font-size:0.8rem;color:#475569">13%</span></div></td></tr>
+        <tr><td style="font-weight:600">Q2</td>
+          <td style="text-align:right;color:#94a3b8">1,485</td>
+          <td style="text-align:right;color:#dc2626;font-weight:600">-65%</td>
+          <td style="text-align:right">8%</td>
+          <td><div style="display:flex;align-items:center;gap:6px">
+            <div style="height:9px;width:43px;background:#2563eb;border-radius:2px;opacity:.85"></div>
+            <span style="font-size:0.8rem;color:#475569">18%</span></div></td></tr>
+        <tr><td style="font-weight:600">Q3</td>
+          <td style="text-align:right;color:#94a3b8">1,899</td>
+          <td style="text-align:right;color:#dc2626;font-weight:600">-65%</td>
+          <td style="text-align:right">6%</td>
+          <td><div style="display:flex;align-items:center;gap:6px">
+            <div style="height:9px;width:37px;background:#2563eb;border-radius:2px;opacity:.85"></div>
+            <span style="font-size:0.8rem;color:#475569">15%</span></div></td></tr>
+        <tr><td style="font-weight:600">Q4</td>
+          <td style="text-align:right;color:#94a3b8">1,421</td>
+          <td style="text-align:right;color:#dc2626;font-weight:600">-57%</td>
+          <td style="text-align:right">8%</td>
+          <td><div style="display:flex;align-items:center;gap:6px">
+            <div style="height:9px;width:47px;background:#2563eb;border-radius:2px;opacity:.85"></div>
+            <span style="font-size:0.8rem;color:#475569">20%</span></div></td></tr>
+        <tr><td style="font-weight:600">Q5 (best)</td>
+          <td style="text-align:right;color:#94a3b8">1,433</td>
+          <td style="text-align:right;color:#dc2626;font-weight:600">-26%</td>
+          <td style="text-align:right">13%</td>
+          <td><div style="display:flex;align-items:center;gap:6px">
+            <div style="height:9px;width:67px;background:#2563eb;border-radius:2px;opacity:.85"></div>
+            <span style="font-size:0.8rem;color:#475569">28%</span></div></td></tr></tbody>
+    </table>
+    <div style="font-weight:700;font-size:0.9rem;color:#334155;margin:18px 0 6px">Disqualifier replay — would-be passed vs flagged</div>
+    <table class="data" style="font-size:0.84rem">
+      <thead><tr><th></th><th style="text-align:right">n</th><th style="text-align:right">Median 12m</th><th style="text-align:right">Beat SPY</th><th style="text-align:right">Doubled</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:600;color:#16a34a">Passed fundamental checks</td><td style="text-align:right">3,035</td><td style="text-align:right">-47%</td><td style="text-align:right">22%</td><td style="text-align:right">10%</td></tr>
+        <tr><td style="font-weight:600;color:#dc2626">Flagged (no rev / crash / neg margin / &lt;3mo cash)</td><td style="text-align:right">4,932</td><td style="text-align:right">-69%</td><td style="text-align:right">16%</td><td style="text-align:right">7%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="verdict "><strong>The fundamental scoring carried real signal.</strong> The best-scored quintile (median -26%) beat the worst (-82%) by 55 points, and the disqualifier's surviving names (-47%) meaningfully outperformed the flagged ones (-69%). Fundamentals didn't make the raw screen a winner, but they ranked in the right direction — the pipeline adds value as a quality filter.
+    <br><span style="font-size:0.82rem;opacity:0.85">Covers the 53 of 100 points that are fundamentally reconstructable
+    (Survivability, gross margin, P/S, P/B). The Catalyst category — short interest, insider buys, analyst moves —
+    needs point-in-time FINRA/market feeds and is not replayed here.</span></div>
+
+
   <div class="section-title">Read this before trusting the numbers</div>
   <div class="caveat">
     <h3>Survivorship bias — the big one</h3>

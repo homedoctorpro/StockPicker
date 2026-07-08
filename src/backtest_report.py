@@ -178,6 +178,79 @@ def _winners_section(wn: dict) -> str:
 """
 
 
+def _edgar_section(ed: dict) -> str:
+    """Point-in-time fundamental-scorer replay: does fundamental quality separate winners?"""
+    if not ed:
+        return ""
+    q = ed["quintiles"]
+    qrows = ""
+    for b in q:
+        bar_w = min(1.0, b["pct_beat_spy"] / 0.50) * 120
+        mc = GREEN if b["median"] >= 0 else RED
+        qrows += f"""
+        <tr><td style="font-weight:600">{html.escape(b['label'])}</td>
+          <td style="text-align:right;color:#94a3b8">{b['n']:,}</td>
+          <td style="text-align:right;color:{mc};font-weight:600">{b['median']:+.0%}</td>
+          <td style="text-align:right">{b['pct_doubled']:.0%}</td>
+          <td><div style="display:flex;align-items:center;gap:6px">
+            <div style="height:9px;width:{bar_w:.0f}px;background:{BLUE};border-radius:2px;opacity:.85"></div>
+            <span style="font-size:0.8rem;color:#475569">{b['pct_beat_spy']:.0%}</span></div></td></tr>"""
+
+    dq = ed["disqualifier"]
+    passed, flagged = dq["passed"], dq["disqualified"]
+    corr = ed["score_corr"]
+    top = q[-1]["median"] if q else 0
+    bot = q[0]["median"] if q else 0
+    spread = top - bot
+    # honest verdict on whether the scorer added signal
+    if spread > 0.10 and corr > 0.05:
+        verdict = (f"<strong>The fundamental scoring carried real signal.</strong> The best-scored quintile "
+                   f"(median {top:+.0%}) beat the worst ({bot:+.0%}) by {spread*100:.0f} points, and the "
+                   f"disqualifier's surviving names ({passed['median']:+.0%}) meaningfully outperformed the "
+                   f"flagged ones ({flagged['median']:+.0%}). Fundamentals didn't make the raw screen a winner, "
+                   f"but they ranked in the right direction — the pipeline adds value as a quality filter.")
+        cls = ""
+    elif spread > 0.05:
+        verdict = (f"<strong>Weak but directionally-correct signal.</strong> Best-scored quintile {top:+.0%} vs "
+                   f"worst {bot:+.0%} (spread {spread*100:.0f}pts); score/return correlation {corr:+.2f}. The "
+                   f"fundamental scorer nudges toward better names but the effect is small against the strategy's "
+                   f"dominant losses.")
+        cls = "warn"
+    else:
+        verdict = (f"<strong>Fundamentals barely separated winners from losers.</strong> Best-scored quintile "
+                   f"{top:+.0%} vs worst {bot:+.0%} (spread {spread*100:.0f}pts, correlation {corr:+.2f}), and "
+                   f"the disqualifier's passed set ({passed['median']:+.0%}) was no better than the flagged set "
+                   f"({flagged['median']:+.0%}). On this evidence the fundamental scoring does not add durable "
+                   f"alpha — the outcome is driven by price/liquidity factors, not the balance sheet.")
+        cls = "warn"
+
+    return f"""
+  <div class="section-title">Does the fundamental scoring actually add alpha?</div>
+  <div class="section-sub">Point-in-time replay: each cohort's Survivability, gross-margin and valuation sub-scores
+    rebuilt from SEC EDGAR XBRL as filed on/before the entry date (no lookahead). {ed['n_positions']:,} positions
+    scored ({ed['coverage']:.0%} coverage). Bar = share that beat SPY.</div>
+  <div class="card">
+    <div style="font-weight:700;font-size:0.9rem;color:#334155;margin-bottom:6px">Forward return by fundamental-score quintile</div>
+    <table class="data" style="font-size:0.84rem">
+      <thead><tr><th>Fundamental score</th><th style="text-align:right">n</th><th style="text-align:right">Median 12m</th><th style="text-align:right">Doubled</th><th>Beat SPY</th></tr></thead>
+      <tbody>{qrows}</tbody>
+    </table>
+    <div style="font-weight:700;font-size:0.9rem;color:#334155;margin:18px 0 6px">Disqualifier replay — would-be passed vs flagged</div>
+    <table class="data" style="font-size:0.84rem">
+      <thead><tr><th></th><th style="text-align:right">n</th><th style="text-align:right">Median 12m</th><th style="text-align:right">Beat SPY</th><th style="text-align:right">Doubled</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:600;color:{GREEN}">Passed fundamental checks</td><td style="text-align:right">{passed['n']:,}</td><td style="text-align:right">{passed['median']:+.0%}</td><td style="text-align:right">{passed['pct_beat_spy']:.0%}</td><td style="text-align:right">{passed['pct_doubled']:.0%}</td></tr>
+        <tr><td style="font-weight:600;color:{RED}">Flagged (no rev / crash / neg margin / &lt;3mo cash)</td><td style="text-align:right">{flagged['n']:,}</td><td style="text-align:right">{flagged['median']:+.0%}</td><td style="text-align:right">{flagged['pct_beat_spy']:.0%}</td><td style="text-align:right">{flagged['pct_doubled']:.0%}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="verdict {cls}">{verdict}
+    <br><span style="font-size:0.82rem;opacity:0.85">Covers the 53 of 100 points that are fundamentally reconstructable
+    (Survivability, gross margin, P/S, P/B). The Catalyst category — short interest, insider buys, analyst moves —
+    needs point-in-time FINRA/market feeds and is not replayed here.</span></div>
+"""
+
+
 def render(summary: dict) -> Path:
     w = summary["windows"]
     generated = datetime.now().strftime("%B %d, %Y")
@@ -215,6 +288,7 @@ def render(summary: dict) -> Path:
     dist_svg = _bar_dist(summary.get("dist_12m", []))
     year_svg = _grouped_year_chart(summary.get("by_year", []))
     winners_html = _winners_section(summary.get("winners", {}))
+    edgar_html = _edgar_section(summary.get("edgar", {}))
 
     n_delisted = h12.get("n_delisted", 0)
     n_positions = h12.get("n", 0)
@@ -293,6 +367,8 @@ def render(summary: dict) -> Path:
   <div class="card">{year_svg}</div>
 
   {winners_html}
+
+  {edgar_html}
 
   <div class="section-title">Read this before trusting the numbers</div>
   <div class="caveat">
