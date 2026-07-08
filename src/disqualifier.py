@@ -103,9 +103,12 @@ def check(ticker: str, month: str) -> DisqualResult:
     info = get_ticker_info(ticker, month)
     financials = get_financials(ticker, month)
 
-    # 1. No revenue (pre-revenue)
+    # 1. No revenue (pre-revenue) — but an empty income statement means the
+    # data fetch failed (rate limit, delisting), which is not the same claim.
     rev_latest, rev_prior = _get_revenue_trend(financials)
-    if rev_latest is None or rev_latest <= 0:
+    if not financials.get("income_stmt"):
+        result.flags.append("No financial data available (fetch failed or delisted)")
+    elif rev_latest is None or rev_latest <= 0:
         result.flags.append("No revenue (pre-revenue company)")
 
     # 2. Revenue declining >50% YoY

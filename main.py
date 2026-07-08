@@ -46,6 +46,14 @@ def main():
         print("[main] No candidates found. Exiting.")
         sys.exit(0)
 
+    # A "down 75%+, >$300M cap" screen yields tens of names, not thousands.
+    # If we got an implausible count the screen failed — fail loudly rather
+    # than spend hours fetching data and publishing a garbage report.
+    if not args.tickers and len(candidates) > 500:
+        print(f"[main] ERROR: {len(candidates)} candidates is implausible for this "
+              f"screen — screening failed. Aborting without generating a report.")
+        sys.exit(1)
+
     # Step 2: Disqualify
     print(f"\n[main] Step 2: Disqualifying {len(candidates)} candidates...")
     passing, disq_results = run_disqualifier(candidates, month)

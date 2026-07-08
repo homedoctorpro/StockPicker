@@ -4,6 +4,7 @@ Screen for US stocks down 75%+ in the past year with >$300M market cap.
 Primary: Finviz screener (no API key needed, free)
 Fallback: yfinance batch download against Russell 3000 from iShares CSV
 """
+import re
 import time
 from typing import Optional
 
@@ -12,6 +13,9 @@ import requests
 from bs4 import BeautifulSoup
 
 FINVIZ_SCREENER = "https://finviz.com/screener.ashx"
+# If Finviz reports more results than this, the performance filter was ignored
+# (e.g. token renamed) and we'd be screening the whole US market — bail to fallback.
+FINVIZ_MAX_PLAUSIBLE = 1000
 FINVIZ_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     "Accept-Language": "en-US,en;q=0.9",
@@ -20,22 +24,27 @@ FINVIZ_HEADERS = {
 
 def screen_finviz(min_market_cap_mm: int = 300, max_perf_pct: float = -75.0) -> list[str]:
     """
-    Query Finviz screener for US stocks with 52-week performance <= max_perf_pct
-    and market cap >= min_market_cap_mm ($M).
+    Query Finviz screener for US stocks down 75%+ over 52 weeks with
+    market cap >= min_market_cap_mm ($M).
 
-    Finviz performance filter codes (52-week):
-      perf52w_-75%to-100% = down 75% to 100%
-    Market cap codes:
-      cap_midover = Mid cap and above ($2B+) — too restrictive
-      cap_smallover = Small cap and above ($300M+) is closest available
-      We filter precisely by market cap after fetching.
+    Finviz filter tokens (verified against the live screener July 2026):
+      ta_perf_52w75u = Performance Year -75% or worse
+      cap_smallover  = Small cap and above ($300M+)
+      geo_usa        = USA
+    We still filter precisely by market cap after fetching.
     """
-    tickers = []
+    filters = "geo_usa,ta_perf_52w75u"
+    if min_market_cap_mm >= 300:
+        filters = "geo_usa,cap_smallover,ta_perf_52w75u"
+
+    tickers: list[str] = []
+    seen: set[str] = set()
+    total = None
     row = 1
     while True:
         params = {
             "v": "111",
-            "f": "geo_usa,perf52w_-75to-100",
+            "f": filters,
             "r": str(row),
             "ft": "4",
         }
@@ -46,35 +55,35 @@ def screen_finviz(min_market_cap_mm: int = 300, max_perf_pct: float = -75.0) -> 
             print(f"[screener] Finviz request failed at row {row}: {e}")
             break
 
+        if total is None:
+            m = re.search(r"#\d+ / (\d+) Total", resp.text)
+            total = int(m.group(1)) if m else None
+            print(f"[screener] Finviz reports {total} total matches")
+            if total is not None and total > FINVIZ_MAX_PLAUSIBLE:
+                print(f"[screener] {total} matches is implausible — the performance "
+                      f"filter was ignored. Abandoning Finviz (fallback will be used).")
+                return []
+
+        # Ticker rows are anchors like <a class="tab-link" href="stock?t=XYZ...">XYZ</a>.
+        # Other tab-link anchors ("Open in Compare", export links, ...) have no t= param
+        # or their text doesn't match the ticker — both checks required to avoid junk.
         soup = BeautifulSoup(resp.text, "lxml")
-        table = soup.find("table", {"id": "screener-views-table"})
-        if not table:
-            # Try alternate table id used by Finviz
-            table = soup.find("table", class_="table-light")
-        if not table:
-            break
-
-        rows = table.find_all("tr")[1:]  # skip header
-        if not rows:
-            break
-
         batch = []
-        for tr in rows:
-            cells = tr.find_all("td")
-            if len(cells) >= 2:
-                ticker_cell = cells[1].get_text(strip=True)
-                if ticker_cell and ticker_cell.isalpha():
-                    batch.append(ticker_cell)
+        for a in soup.find_all("a", class_="tab-link", href=True):
+            m = re.search(r"(?:stock|quote\.ashx)\?t=([A-Za-z0-9.\-]+)", a["href"])
+            if m and a.get_text(strip=True) == m.group(1):
+                batch.append(m.group(1))
 
-        if not batch:
+        new = [t for t in batch if t not in seen]
+        if not new:
+            break
+        tickers.extend(new)
+        seen.update(new)
+
+        if total is not None and len(tickers) >= total:
             break
 
-        tickers.extend(batch)
-        row += len(batch)
-
-        if len(batch) < 20:
-            break
-
+        row += len(new)
         time.sleep(1.5)
 
     print(f"[screener] Finviz returned {len(tickers)} raw tickers")
@@ -86,14 +95,22 @@ def filter_by_market_cap(tickers: list[str], min_cap_mm: int = 300) -> list[str]
     import yfinance as yf
     passing = []
     for ticker in tickers:
-        try:
-            info = yf.Ticker(ticker).fast_info
-            cap = getattr(info, "market_cap", None)
-            if cap and cap >= min_cap_mm * 1_000_000:
-                passing.append(ticker)
-            time.sleep(0.1)
-        except Exception:
-            passing.append(ticker)  # include on error, disqualifier will handle
+        cap = None
+        for attempt in range(2):
+            try:
+                info = yf.Ticker(ticker).fast_info
+                cap = getattr(info, "market_cap", None)
+                break
+            except Exception:
+                time.sleep(2.0)
+        if cap is None:
+            # Excluding on failure keeps junk symbols out; a real ticker whose
+            # lookup failed twice would score poorly anyway with no data.
+            print(f"[screener] market cap lookup failed for {ticker} — excluding")
+            continue
+        if cap >= min_cap_mm * 1_000_000:
+            passing.append(ticker)
+        time.sleep(0.1)
     return passing
 
 
