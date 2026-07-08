@@ -1,0 +1,11 @@
+Ticker,Company,Sleeve,Amount_USD,Percent
+NET,Cloudflare,Consumption infrastructure,50.00,0.1000
+DDOG,Datadog,Consumption infrastructure,50.00,0.1000
+MDB,MongoDB,Consumption infrastructure,50.00,0.1000
+SNOW,Snowflake,Consumption infrastructure,50.00,0.1000
+CRWD,CrowdStrike,Security & verification,50.00,0.1000
+PANW,Palo Alto Networks,Security & verification,50.00,0.1000
+ZS,Zscaler,Security & verification,50.00,0.1000
+CEG,Constellation Energy,Power & cooling,50.00,0.1000
+VST,Vistra,Power & cooling,50.00,0.1000
+VRT,Vertiv,Power & cooling,50.00,0.1000

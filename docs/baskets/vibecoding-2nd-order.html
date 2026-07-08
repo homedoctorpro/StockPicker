@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibecoding — Second-Order Basket</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:system-ui,-apple-system,sans-serif; background:#f8fafc; color:#1a1a1a; }
+  .header { background:#0f172a; color:#fff; padding:30px 40px; }
+  .header h1 { font-size:1.6rem; font-weight:800; }
+  .header .thesis { color:#cbd5e1; font-size:0.92rem; margin-top:10px; max-width:760px; line-height:1.55; }
+  .header .budget { color:#94a3b8; font-size:0.85rem; margin-top:12px; }
+  .container { max-width:940px; margin:0 auto; padding:28px 24px 60px; }
+  .sleeve { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:20px 22px; margin-bottom:18px; overflow-x:auto; }
+  .sleeve-head { display:flex; justify-content:space-between; align-items:baseline; }
+  .sleeve-name { font-weight:800; font-size:1.05rem; color:#0f172a; }
+  .sleeve-sub { font-weight:700; color:#2563eb; }
+  .rationale { color:#475569; font-size:0.86rem; margin:6px 0 12px; line-height:1.5; }
+  table.t { width:100%; border-collapse:collapse; font-size:0.88rem; }
+  table.t th { text-align:left; font-size:0.7rem; text-transform:uppercase; letter-spacing:.04em; color:#64748b; padding:8px 10px; background:#f1f5f9; }
+  table.t td { padding:10px; border-top:1px solid #e5e7eb; }
+  .total { display:flex; justify-content:space-between; align-items:center; background:#0f172a; color:#fff; border-radius:12px; padding:16px 22px; margin-bottom:22px; }
+  .total .n { font-size:1.5rem; font-weight:800; }
+  .how { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:16px 20px; font-size:0.88rem; line-height:1.6; color:#1e3a8a; margin-bottom:18px; }
+  .watch { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:20px 22px; margin-bottom:18px; }
+  .watch h2 { font-size:1rem; color:#334155; margin-bottom:4px; }
+  .watch p { color:#64748b; font-size:0.84rem; margin-bottom:12px; }
+  .caveat { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:16px 20px; font-size:0.84rem; line-height:1.6; color:#713f12; }
+  footer { text-align:center; color:#94a3b8; font-size:0.75rem; padding:28px; }
+  footer a { color:#94a3b8; }
+</style></head><body>
+<div class="header">
+  <h1>🛠️ Vibecoding — Second-Order Basket</h1>
+  <div class="thesis">When the cost of writing code collapses, value migrates to code&#x27;s complements — the things you need more of once software is nearly free to build: compute to run it, security to protect the flood of it, and power to fuel it. This basket buys the complements, not the coding tools.</div>
+  <div class="budget">Monthly dollar-cost-average budget: <strong>$500</strong> · 10 positions · equal-weight within each sleeve</div>
+</div>
+<div class="container">
+  <div class="total"><span>Monthly basket total</span><span class="n">$500.00</span></div>
+  
+        <div class="sleeve">
+          <div class="sleeve-head">
+            <span class="sleeve-name">Consumption infrastructure</span>
+            <span class="sleeve-sub">$200 · 40%</span>
+          </div>
+          <p class="rationale">Cheap coding means more software gets built and run. Seat-based SaaS gets squeezed; usage-metered infra thrives on the volume.</p>
+          <table class="t">
+            <thead><tr><th>Ticker</th><th>Company</th><th>Why</th><th style="text-align:right">Buy</th><th style="text-align:right">Wt</th></tr></thead>
+            <tbody>
+            <tr>
+              <td style="font-weight:700">NET</td>
+              <td>Cloudflare</td>
+              <td style="color:#64748b;font-size:0.82rem">edge + inference, usage-based</td>
+              <td style="text-align:right;font-weight:700">$50.00</td>
+              <td style="text-align:right;color:#64748b">10.0%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700">DDOG</td>
+              <td>Datadog</td>
+              <td style="color:#64748b;font-size:0.82rem">observability scales with # of apps</td>
+              <td style="text-align:right;font-weight:700">$50.00</td>
+              <td style="text-align:right;color:#64748b">10.0%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700">MDB</td>
+              <td>MongoDB</td>
+              <td style="color:#64748b;font-size:0.82rem">consumption database for new apps</td>
+              <td style="text-align:right;font-weight:700">$50.00</td>
+              <td style="text-align:right;color:#64748b">10.0%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700">SNOW</td>
+              <td>Snowflake</td>
+              <td style="color:#64748b;font-size:0.82rem">data platform, usage-metered</td>
+              <td style="text-align:right;font-weight:700">$50.00</td>
+              <td style="text-align:right;color:#64748b">10.0%</td>
+            </tr></tbody>
+          </table>
+        </div>
+        <div class="sleeve">
+          <div class="sleeve-head">
+            <span class="sleeve-name">Security &amp; verification</span>
+            <span class="sleeve-sub">$150 · 30%</span>
+          </div>
+          <p class="rationale">AI writes the code faster than humans review it — more bugs, more vulnerabilities, a bigger attack surface. Someone has to secure it.</p>
+          <table class="t">
+            <thead><tr><th>Ticker</th><th>Company</th><th>Why</th><th style="text-align:right">Buy</th><th style="text-align:right">Wt</th></tr></thead>
+            <tbody>
+            <tr>
+              <td style="font-weight:700">CRWD</td>
+              <td>CrowdStrike</td>
+              <td style="color:#64748b;font-size:0.82rem">endpoint + runtime security</td>
+              <td style="text-align:right;font-weight:700">$50.00</td>
+              <td style="text-align:right;color:#64748b">10.0%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700">PANW</td>
+              <td>Palo Alto Networks</td>
+              <td style="color:#64748b;font-size:0.82rem">platform security</td>
+              <td style="text-align:right;font-weight:700">$50.00</td>
+              <td style="text-align:right;color:#64748b">10.0%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700">ZS</td>
+              <td>Zscaler</td>
+              <td style="color:#64748b;font-size:0.82rem">zero-trust access</td>
+              <td style="text-align:right;font-weight:700">$50.00</td>
+              <td style="text-align:right;color:#64748b">10.0%</td>
+            </tr></tbody>
+          </table>
+        </div>
+        <div class="sleeve">
+          <div class="sleeve-head">
+            <span class="sleeve-name">Power &amp; cooling</span>
+            <span class="sleeve-sub">$150 · 30%</span>
+          </div>
+          <p class="rationale">The compounding physical bottleneck: more software everywhere → more datacenters → more electricity and heat to move.</p>
+          <table class="t">
+            <thead><tr><th>Ticker</th><th>Company</th><th>Why</th><th style="text-align:right">Buy</th><th style="text-align:right">Wt</th></tr></thead>
+            <tbody>
+            <tr>
+              <td style="font-weight:700">CEG</td>
+              <td>Constellation Energy</td>
+              <td style="color:#64748b;font-size:0.82rem">datacenter power</td>
+              <td style="text-align:right;font-weight:700">$50.00</td>
+              <td style="text-align:right;color:#64748b">10.0%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700">VST</td>
+              <td>Vistra</td>
+              <td style="color:#64748b;font-size:0.82rem">independent power producer</td>
+              <td style="text-align:right;font-weight:700">$50.00</td>
+              <td style="text-align:right;color:#64748b">10.0%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700">VRT</td>
+              <td>Vertiv</td>
+              <td style="color:#64748b;font-size:0.82rem">datacenter cooling &amp; power distribution</td>
+              <td style="text-align:right;font-weight:700">$50.00</td>
+              <td style="text-align:right;color:#64748b">10.0%</td>
+            </tr></tbody>
+          </table>
+        </div>
+  <div class="how">
+    <strong>How to run it:</strong> download <a href="vibecoding-2nd-order.csv">vibecoding-2nd-order.csv</a> and either build a
+    <strong>Fidelity Basket Portfolio</strong> from these symbols/dollar amounts (one-click monthly rebalance), or
+    set a <strong>recurring monthly investment</strong> on each via Stocks by the Slice. Rerun the generator to
+    resize to a different budget.
+  </div>
+  <div class="watch">
+    <h2>Disruption watchlist — no allocation</h2>
+    <p>The other side of the thesis: if vibecoding really wins, these get squeezed. Track them to see if it's playing out before committing more.</p>
+    <table class="t"><thead><tr><th>Ticker</th><th>Company</th><th>Why it's at risk</th></tr></thead><tbody><tr><td style="font-weight:700">TEAM</td><td>Atlassian</td><td style="color:#64748b;font-size:0.82rem">seat-based dev SaaS — disruption risk</td></tr><tr><td style="font-weight:700">GTLB</td><td>GitLab</td><td style="color:#64748b;font-size:0.82rem">seat-based, though has AI (Duo)</td></tr><tr><td style="font-weight:700">ACN</td><td>Accenture</td><td style="color:#64748b;font-size:0.82rem">IT services / labor arbitrage</td></tr><tr><td style="font-weight:700">INFY</td><td>Infosys</td><td style="color:#64748b;font-size:0.82rem">offshore code labor</td></tr><tr><td style="font-weight:700">CTSH</td><td>Cognizant</td><td style="color:#64748b;font-size:0.82rem">IT services</td></tr></tbody></table>
+  </div>
+  <div class="caveat">
+    <strong>Not investment advice.</strong> This is a concentrated, single-theme conviction tilt — it has a fat left
+    tail (the same lesson the PhoenixPicks backtest hammered). The power and security names have already run hard, so
+    you may be paying up; a correct thesis still doesn't guarantee a good entry price. Size it as satellite money around
+    an index core (e.g. your VTI), not the core itself. Names are picked for thesis exposure, not valuation.
+  </div>
+  <footer><a href="../index.html">← PhoenixPicks</a> · thesis basket · not advice</footer>
+</div></body></html>

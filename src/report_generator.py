@@ -92,6 +92,7 @@ def _update_index(new_month: str, new_month_label: str) -> None:
 {chr(10).join(link_items)}
   </ul>
   <p class="aside"><a href="backtest.html">→ Does this strategy actually work? See the historical backtest.</a></p>
+  <p class="aside"><a href="baskets/vibecoding-2nd-order.html">→ Vibecoding second-order basket (thesis tilt, not advice)</a></p>
 </body>
 </html>"""
 
