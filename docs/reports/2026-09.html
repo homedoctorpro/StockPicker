@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhoenixPicks — September 2026</title>
+  <style>
+    :root {
+      --green: #16a34a; --green-bg: #dcfce7;
+      --yellow: #d97706; --yellow-bg: #fef9c3;
+      --gray: #6b7280; --gray-bg: #f3f4f6;
+      --red: #dc2626; --red-bg: #fee2e2;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1a1a1a; }
+
+    .header { background: #0f172a; color: white; padding: 28px 40px; }
+    .header h1 { font-size: 1.6rem; font-weight: 700; }
+    .header .meta { color: #94a3b8; font-size: 0.85rem; margin-top: 6px; }
+    .stats { display: flex; gap: 24px; margin-top: 16px; }
+    .stat { background: rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 18px; }
+    .stat .n { font-size: 1.5rem; font-weight: 700; }
+    .stat .l { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+    .section-title { font-size: 1.1rem; font-weight: 700; color: #374151; margin: 32px 0 16px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+
+    /* Summary table */
+    .summary-table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+    .summary-table th { background: #f1f5f9; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; padding: 10px 14px; }
+    .summary-table td { padding: 12px 14px; border-top: 1px solid var(--border); font-size: 0.9rem; }
+    .summary-table tr:hover td { background: #f8fafc; }
+    .summary-table a { color: #0066cc; text-decoration: none; font-weight: 600; }
+    .summary-table a:hover { text-decoration: underline; }
+
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-green { background: var(--green-bg); color: var(--green); }
+    .badge-yellow { background: var(--yellow-bg); color: var(--yellow); }
+    .badge-gray { background: var(--gray-bg); color: var(--gray); }
+
+    /* Stock cards */
+    .stock-card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 28px; overflow: hidden; }
+    .card-header { padding: 18px 24px; display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .card-rank { font-size: 1.8rem; font-weight: 800; color: #cbd5e1; margin-right: 16px; min-width: 44px; }
+    .card-title { flex: 1; }
+    .card-title .ticker { font-size: 1.4rem; font-weight: 800; color: #0f172a; }
+    .card-title .name { font-size: 0.88rem; color: #64748b; margin-top: 2px; }
+    .card-title .meta { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+    .card-score { text-align: right; }
+    .score-circle { width: 68px; height: 68px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .score-circle .num { font-size: 1.5rem; font-weight: 800; line-height: 1; }
+    .score-circle .denom { font-size: 0.7rem; color: inherit; opacity: 0.7; }
+    .score-circle.green { background: var(--green-bg); color: var(--green); }
+    .score-circle.yellow { background: var(--yellow-bg); color: var(--yellow); }
+    .score-circle.gray { background: var(--gray-bg); color: var(--gray); }
+
+    .card-body { padding: 20px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 680px) { .card-body { grid-template-columns: 1fr; } }
+
+    .categories { }
+    .category { margin-bottom: 12px; }
+    .cat-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; margin-bottom: 4px; }
+    .cat-name { font-weight: 600; color: #374151; }
+    .cat-score { color: #64748b; font-size: 0.8rem; }
+    .bar-bg { background: #f1f5f9; border-radius: 99px; height: 7px; }
+    .bar-fill { height: 7px; border-radius: 99px; }
+    .bar-fill.green { background: var(--green); }
+    .bar-fill.yellow { background: var(--yellow); }
+    .bar-fill.gray { background: #94a3b8; }
+
+    .signals { }
+    .signal-section { margin-bottom: 16px; }
+    .signal-section h4 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; font-weight: 700; margin-bottom: 8px; }
+    .signal-list { list-style: none; }
+    .signal-list li { font-size: 0.83rem; color: #374151; margin-bottom: 6px; padding-left: 16px; position: relative; }
+    .signal-list li::before { content: "›"; position: absolute; left: 0; color: #94a3b8; }
+    .signal-list.risk li::before { content: "!"; color: var(--red); font-weight: 700; }
+    .signal-list.catalyst li::before { content: "↑"; color: var(--green); font-weight: 700; }
+
+    .action-bar { padding: 12px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: #fafafa; }
+    .action-label { font-size: 0.8rem; color: #64748b; }
+    .action-value { font-weight: 600; }
+    .action-strong { color: var(--green); }
+    .action-watch { color: var(--yellow); }
+    .action-pass { color: var(--gray); }
+
+    .empty { text-align: center; color: #94a3b8; padding: 48px; font-size: 1rem; }
+    footer { text-align: center; color: #94a3b8; font-size: 0.75rem; padding: 32px; }
+    footer a { color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔥 PhoenixPicks — September 2026</h1>
+  <div class="meta">AI-screened stocks left for dead — down ≥75% (52-week), market cap &gt;$300M — hunting the ones that rise from the ashes &nbsp;·&nbsp; Generated September 01, 2026 at 12:50 PM</div>
+  <div class="stats">
+    <div class="stat"><div class="n">13</div><div class="l">Screened</div></div>
+    <div class="stat"><div class="n">7</div><div class="l">Disqualified</div></div>
+    <div class="stat"><div class="n">6</div><div class="l">Scored</div></div>
+    <div class="stat"><div class="n">0</div><div class="l">Strong Buys</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+  
+  
+  <div class="section-title">📥 Monthly Basket — $500</div>
+  <table class="summary-table" style="margin-bottom:12px">
+    <thead>
+      <tr><th>Ticker</th><th>Company</th><th>Rating</th><th>Score</th><th style="text-align:right">Buy</th><th style="text-align:right">Weight</th></tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td><a href="#TTD">TTD</a></td>
+        <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">The Trade Desk, Inc.</td>
+        <td>
+          <span class="badge badge-yellow">Watchlist</span>
+          
+        </td>
+        <td>67/100</td>
+        <td style="text-align:right;font-weight:700">$125.00</td>
+        <td style="text-align:right;color:#64748b">25.0%</td>
+      </tr>
+      
+      <tr>
+        <td><a href="#VITL">VITL</a></td>
+        <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Vital Farms, Inc.</td>
+        <td>
+          <span class="badge badge-yellow">Watchlist</span>
+          
+        </td>
+        <td>64/100</td>
+        <td style="text-align:right;font-weight:700">$125.00</td>
+        <td style="text-align:right;color:#64748b">25.0%</td>
+      </tr>
+      
+      <tr>
+        <td><a href="#VRRM">VRRM</a></td>
+        <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Verra Mobility Corporation</td>
+        <td>
+          <span class="badge badge-yellow">Watchlist</span>
+          
+        </td>
+        <td>57/100</td>
+        <td style="text-align:right;font-weight:700">$125.00</td>
+        <td style="text-align:right;color:#64748b">25.0%</td>
+      </tr>
+      
+      <tr>
+        <td><a href="#GOGO">GOGO</a></td>
+        <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Gogo Inc.</td>
+        <td>
+          <span class="badge badge-yellow">Watchlist</span>
+          
+        </td>
+        <td>55/100</td>
+        <td style="text-align:right;font-weight:700">$125.00</td>
+        <td style="text-align:right;color:#64748b">25.0%</td>
+      </tr>
+      
+      <tr>
+        <td colspan="4" style="font-weight:700;text-align:right">Total</td>
+        <td style="text-align:right;font-weight:800">$500.00</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="font-size:0.82rem;color:#64748b;margin-bottom:8px">
+    Equal-weight across actionable picks (Watchlist or better). Execute in Fidelity via
+    <strong>Basket Portfolios</strong> or <strong>Stocks by the Slice</strong> (dollar-based fractional orders).
+    Download: <a href="2026-09-basket.csv">2026-09-basket.csv</a>.
+    <br><em>Not investment advice. Review each name before buying — see the historical
+    <a href="../backtest.html">backtest</a> for how this strategy has actually performed.</em>
+  </p>
+  
+
+  
+  
+  <div class="section-title">All Candidates — Ranked by Score</div>
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Ticker</th>
+        <th>Company</th>
+        <th>Sector</th>
+        <th>Mkt Cap</th>
+        <th>52-Wk</th>
+        <th>Score</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td style="color:#94a3b8">1</td>
+        <td><a href="#TTD">TTD</a></td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">The Trade Desk, Inc.</td>
+        <td style="color:#64748b;font-size:0.82rem">Communication Services</td>
+        <td>$6447M</td>
+        <td style="color:#dc2626;font-weight:600">-75%</td>
+        <td style="font-weight:700">67/100</td>
+        <td>
+          
+            <span class="badge badge-yellow">Watchlist</span>
+          
+        </td>
+      </tr>
+      
+      <tr>
+        <td style="color:#94a3b8">2</td>
+        <td><a href="#VITL">VITL</a></td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Vital Farms, Inc.</td>
+        <td style="color:#64748b;font-size:0.82rem">Consumer Defensive</td>
+        <td>$459M</td>
+        <td style="color:#dc2626;font-weight:600">-79%</td>
+        <td style="font-weight:700">64/100</td>
+        <td>
+          
+            <span class="badge badge-yellow">Watchlist</span>
+          
+        </td>
+      </tr>
+      
+      <tr>
+        <td style="color:#94a3b8">3</td>
+        <td><a href="#VRRM">VRRM</a></td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Verra Mobility Corporation</td>
+        <td style="color:#64748b;font-size:0.82rem">Technology</td>
+        <td>$673M</td>
+        <td style="color:#dc2626;font-weight:600">-82%</td>
+        <td style="font-weight:700">57/100</td>
+        <td>
+          
+            <span class="badge badge-yellow">Watchlist</span>
+          
+        </td>
+      </tr>
+      
+      <tr>
+        <td style="color:#94a3b8">4</td>
+        <td><a href="#GOGO">GOGO</a></td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Gogo Inc.</td>
+        <td style="color:#64748b;font-size:0.82rem">Communication Services</td>
+        <td>$341M</td>
+        <td style="color:#dc2626;font-weight:600">-77%</td>
+        <td style="font-weight:700">55/100</td>
+        <td>
+          
+            <span class="badge badge-yellow">Watchlist</span>
+          
+        </td>
+      </tr>
+      
+      <tr>
+        <td style="color:#94a3b8">5</td>
+        <td><a href="#ALIT">ALIT</a></td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Alight, Inc.</td>
+        <td style="color:#64748b;font-size:0.82rem">Technology</td>
+        <td>$530M</td>
+        <td style="color:#dc2626;font-weight:600">-81%</td>
+        <td style="font-weight:700">52/100</td>
+        <td>
+          
+            <span class="badge badge-gray">Pass</span>
+          
+        </td>
+      </tr>
+      
+      <tr>
+        <td style="color:#94a3b8">6</td>
+        <td><a href="#TDUP">TDUP</a></td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">ThredUp Inc.</td>
+        <td style="color:#64748b;font-size:0.82rem">Consumer Cyclical</td>
+        <td>$353M</td>
+        <td style="color:#dc2626;font-weight:600">-75%</td>
+        <td style="font-weight:700">41/100</td>
+        <td>
+          
+            <span class="badge badge-gray">Pass</span>
+          
+        </td>
+      </tr>
+      
+    </tbody>
+  </table>
+  
+
+  
+  
+  
+  
+
+  <div class="section-title" style="margin-top:48px">
+    Watchlist
+  </div>
+
+  <div class="stock-card" id="TTD">
+    <div class="card-header">
+      <div class="card-rank">#1</div>
+      <div class="card-title">
+        <div class="ticker">TTD</div>
+        <div class="name">The Trade Desk, Inc.</div>
+        <div class="meta">Communication Services &nbsp;·&nbsp; $6447M market cap &nbsp;·&nbsp; <span style="color:#dc2626">-75% (52-wk)</span></div>
+      </div>
+      <div class="card-score">
+        <div class="score-circle yellow">
+          <div class="num">67</div>
+          <div class="denom">/100</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="categories">
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Survivability</span>
+            <span class="cat-score">29/30</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:96%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Catalyst Potential</span>
+            <span class="cat-score">6/20</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill gray" style="width:30%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Business Quality</span>
+            <span class="cat-score">19/20</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:95%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Valuation</span>
+            <span class="cat-score">8/15</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill yellow" style="width:53%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Decline Reason &amp; Setup</span>
+            <span class="cat-score">3/10</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill gray" style="width:30%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Recovery Comps</span>
+            <span class="cat-score">2/5</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill yellow" style="width:40%"></div>
+          </div>
+        </div>
+        
+      </div>
+
+      <div class="signals">
+        
+        <div class="signal-section">
+          <h4>Catalysts</h4>
+          <ul class="signal-list catalyst">
+            <li>Cash flow positive — no burn</li><li>Revenue growing +18.5% YoY</li><li>EBITDA positive</li>
+          </ul>
+        </div>
+        
+
+        
+
+        
+        
+          
+            
+          
+            
+          
+        
+          
+            
+              
+            
+          
+        
+          
+            
+              
+            
+          
+            
+          
+        
+          
+            
+              
+            
+          
+        
+          
+        
+          
+            
+              
+            
+          
+            
+              
+            
+          
+        
+        
+        <div class="signal-section">
+          <h4>Notes</h4>
+          <ul class="signal-list">
+            <li>Elevated short interest: 23.0% of float</li><li>Gross margin 78.6% — 29pp above sector median</li><li>Trading at 17% of 3-year historical P/S — deeply discounted</li><li>Sector base rate for Communication Services</li><li>Large cap (&gt;$5B) that fell 75%+ — weakest recovery bucket historically</li>
+          </ul>
+        </div>
+        
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <span class="action-label">Monthly Action</span>
+      <span class="action-value
+        action-watch">
+        Watchlist
+      </span>
+    </div>
+  </div>
+  
+  
+  
+
+  <div class="section-title" style="margin-top:48px">
+    
+  </div>
+
+  <div class="stock-card" id="VITL">
+    <div class="card-header">
+      <div class="card-rank">#2</div>
+      <div class="card-title">
+        <div class="ticker">VITL</div>
+        <div class="name">Vital Farms, Inc.</div>
+        <div class="meta">Consumer Defensive &nbsp;·&nbsp; $459M market cap &nbsp;·&nbsp; <span style="color:#dc2626">-79% (52-wk)</span></div>
+      </div>
+      <div class="card-score">
+        <div class="score-circle yellow">
+          <div class="num">64</div>
+          <div class="denom">/100</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="categories">
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Survivability</span>
+            <span class="cat-score">27/30</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:90%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Catalyst Potential</span>
+            <span class="cat-score">6/20</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill gray" style="width:30%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Business Quality</span>
+            <span class="cat-score">15/20</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:75%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Valuation</span>
+            <span class="cat-score">7/15</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill yellow" style="width:46%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Decline Reason &amp; Setup</span>
+            <span class="cat-score">6/10</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill yellow" style="width:60%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Recovery Comps</span>
+            <span class="cat-score">3/5</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill yellow" style="width:60%"></div>
+          </div>
+        </div>
+        
+      </div>
+
+      <div class="signals">
+        
+        <div class="signal-section">
+          <h4>Catalysts</h4>
+          <ul class="signal-list catalyst">
+            <li>Revenue growing +25.3% YoY</li><li>EBITDA positive</li>
+          </ul>
+        </div>
+        
+
+        
+
+        
+        
+          
+            
+          
+        
+          
+            
+              
+            
+          
+        
+          
+            
+          
+        
+          
+        
+          
+            
+              
+            
+          
+        
+          
+            
+              
+            
+          
+            
+              
+            
+          
+        
+        
+        <div class="signal-section">
+          <h4>Notes</h4>
+          <ul class="signal-list">
+            <li>Elevated short interest: 28.1% of float</li><li>Trading 29% above the 52-week low — bottom likely in</li><li>Sector base rate for Consumer Defensive</li><li>$300M-1B cap — best-performing size bucket in the backtest</li>
+          </ul>
+        </div>
+        
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <span class="action-label">Monthly Action</span>
+      <span class="action-value
+        action-watch">
+        Watchlist
+      </span>
+    </div>
+  </div>
+  
+  
+  
+
+  <div class="section-title" style="margin-top:48px">
+    
+  </div>
+
+  <div class="stock-card" id="VRRM">
+    <div class="card-header">
+      <div class="card-rank">#3</div>
+      <div class="card-title">
+        <div class="ticker">VRRM</div>
+        <div class="name">Verra Mobility Corporation</div>
+        <div class="meta">Technology &nbsp;·&nbsp; $673M market cap &nbsp;·&nbsp; <span style="color:#dc2626">-82% (52-wk)</span></div>
+      </div>
+      <div class="card-score">
+        <div class="score-circle yellow">
+          <div class="num">57</div>
+          <div class="denom">/100</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="categories">
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Survivability</span>
+            <span class="cat-score">22/30</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:73%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Catalyst Potential</span>
+            <span class="cat-score">0/20</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill gray" style="width:0%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Business Quality</span>
+            <span class="cat-score">19/20</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:95%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Valuation</span>
+            <span class="cat-score">8/15</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill yellow" style="width:53%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Decline Reason &amp; Setup</span>
+            <span class="cat-score">3/10</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill gray" style="width:30%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Recovery Comps</span>
+            <span class="cat-score">5/5</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:100%"></div>
+          </div>
+        </div>
+        
+      </div>
+
+      <div class="signals">
+        
+        <div class="signal-section">
+          <h4>Catalysts</h4>
+          <ul class="signal-list catalyst">
+            <li>Cash flow positive — no burn</li><li>Revenue growing +11.4% YoY</li><li>EBITDA positive</li>
+          </ul>
+        </div>
+        
+
+        
+
+        
+        
+          
+            
+          
+            
+          
+        
+          
+        
+          
+            
+              
+            
+          
+            
+          
+        
+          
+            
+              
+            
+          
+        
+          
+        
+          
+            
+              
+            
+          
+            
+              
+            
+          
+        
+        
+        <div class="signal-section">
+          <h4>Notes</h4>
+          <ul class="signal-list">
+            <li>Gross margin 92.3% — 37pp above sector median</li><li>Trading at 19% of 3-year historical P/S — deeply discounted</li><li>Sector base rate for Technology</li><li>$300M-1B cap — best-performing size bucket in the backtest</li>
+          </ul>
+        </div>
+        
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <span class="action-label">Monthly Action</span>
+      <span class="action-value
+        action-watch">
+        Watchlist
+      </span>
+    </div>
+  </div>
+  
+  
+  
+
+  <div class="section-title" style="margin-top:48px">
+    
+  </div>
+
+  <div class="stock-card" id="GOGO">
+    <div class="card-header">
+      <div class="card-rank">#4</div>
+      <div class="card-title">
+        <div class="ticker">GOGO</div>
+        <div class="name">Gogo Inc.</div>
+        <div class="meta">Communication Services &nbsp;·&nbsp; $341M market cap &nbsp;·&nbsp; <span style="color:#dc2626">-77% (52-wk)</span></div>
+      </div>
+      <div class="card-score">
+        <div class="score-circle yellow">
+          <div class="num">55</div>
+          <div class="denom">/100</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="categories">
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Survivability</span>
+            <span class="cat-score">22/30</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:73%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Catalyst Potential</span>
+            <span class="cat-score">3/20</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill gray" style="width:15%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Business Quality</span>
+            <span class="cat-score">15/20</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:75%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Valuation</span>
+            <span class="cat-score">8/15</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill yellow" style="width:53%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Decline Reason &amp; Setup</span>
+            <span class="cat-score">3/10</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill gray" style="width:30%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Recovery Comps</span>
+            <span class="cat-score">4/5</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:80%"></div>
+          </div>
+        </div>
+        
+      </div>
+
+      <div class="signals">
+        
+        <div class="signal-section">
+          <h4>Catalysts</h4>
+          <ul class="signal-list catalyst">
+            <li>Cash flow positive — no burn</li><li>Revenue growing +104.7% YoY</li><li>EBITDA positive</li>
+          </ul>
+        </div>
+        
+
+        
+
+        
+        
+          
+            
+          
+            
+          
+        
+          
+        
+          
+            
+          
+        
+          
+            
+              
+            
+          
+        
+          
+            
+              
+            
+          
+        
+          
+            
+              
+            
+          
+            
+              
+            
+          
+        
+        
+        <div class="signal-section">
+          <h4>Notes</h4>
+          <ul class="signal-list">
+            <li>Trading at 20% of 3-year historical P/S — deeply discounted</li><li>Still pinned to the 52-week low — no confirmation of a bottom yet</li><li>Sector base rate for Communication Services</li><li>$300M-1B cap — best-performing size bucket in the backtest</li>
+          </ul>
+        </div>
+        
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <span class="action-label">Monthly Action</span>
+      <span class="action-value
+        action-watch">
+        Watchlist
+      </span>
+    </div>
+  </div>
+  
+  
+  
+
+  <div class="section-title" style="margin-top:48px">
+    Pass
+  </div>
+
+  <div class="stock-card" id="ALIT">
+    <div class="card-header">
+      <div class="card-rank">#5</div>
+      <div class="card-title">
+        <div class="ticker">ALIT</div>
+        <div class="name">Alight, Inc.</div>
+        <div class="meta">Technology &nbsp;·&nbsp; $530M market cap &nbsp;·&nbsp; <span style="color:#dc2626">-81% (52-wk)</span></div>
+      </div>
+      <div class="card-score">
+        <div class="score-circle gray">
+          <div class="num">52</div>
+          <div class="denom">/100</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="categories">
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Survivability</span>
+            <span class="cat-score">21/30</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:70%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Catalyst Potential</span>
+            <span class="cat-score">0/20</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill gray" style="width:0%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Business Quality</span>
+            <span class="cat-score">5/20</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill gray" style="width:25%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Valuation</span>
+            <span class="cat-score">15/15</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:100%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Decline Reason &amp; Setup</span>
+            <span class="cat-score">6/10</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill yellow" style="width:60%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Recovery Comps</span>
+            <span class="cat-score">5/5</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:100%"></div>
+          </div>
+        </div>
+        
+      </div>
+
+      <div class="signals">
+        
+        <div class="signal-section">
+          <h4>Catalysts</h4>
+          <ul class="signal-list catalyst">
+            <li>Cash flow positive — no burn</li>
+          </ul>
+        </div>
+        
+
+        
+
+        
+        
+          
+            
+          
+            
+              
+            
+          
+        
+          
+        
+          
+            
+              
+            
+          
+            
+              
+            
+          
+        
+          
+            
+              
+            
+          
+            
+              
+            
+          
+        
+          
+            
+              
+            
+          
+        
+          
+            
+              
+            
+          
+            
+              
+            
+          
+        
+        
+        <div class="signal-section">
+          <h4>Notes</h4>
+          <ul class="signal-list">
+            <li>Revenue flat YoY</li><li>Gross margin 33.8% well below sector median 55.0%</li><li>EBITDA worsening</li><li>Trading at 15% of 3-year historical P/S — deeply discounted</li><li>Deep value: P/B = 0.37x (below liquidation value)</li><li>Trading 46% above the 52-week low — bottom likely in</li>
+          </ul>
+        </div>
+        
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <span class="action-label">Monthly Action</span>
+      <span class="action-value
+        action-pass">
+        Pass
+      </span>
+    </div>
+  </div>
+  
+  
+  
+
+  <div class="section-title" style="margin-top:48px">
+    
+  </div>
+
+  <div class="stock-card" id="TDUP">
+    <div class="card-header">
+      <div class="card-rank">#6</div>
+      <div class="card-title">
+        <div class="ticker">TDUP</div>
+        <div class="name">ThredUp Inc.</div>
+        <div class="meta">Consumer Cyclical &nbsp;·&nbsp; $353M market cap &nbsp;·&nbsp; <span style="color:#dc2626">-75% (52-wk)</span></div>
+      </div>
+      <div class="card-score">
+        <div class="score-circle gray">
+          <div class="num">41</div>
+          <div class="denom">/100</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="categories">
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Survivability</span>
+            <span class="cat-score">13/30</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill yellow" style="width:43%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Catalyst Potential</span>
+            <span class="cat-score">3/20</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill gray" style="width:15%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Business Quality</span>
+            <span class="cat-score">17/20</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill green" style="width:85%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Valuation</span>
+            <span class="cat-score">2/15</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill gray" style="width:13%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Decline Reason &amp; Setup</span>
+            <span class="cat-score">3/10</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill gray" style="width:30%"></div>
+          </div>
+        </div>
+        
+        
+        
+        <div class="category">
+          <div class="cat-header">
+            <span class="cat-name">Recovery Comps</span>
+            <span class="cat-score">3/5</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill yellow" style="width:60%"></div>
+          </div>
+        </div>
+        
+      </div>
+
+      <div class="signals">
+        
+        <div class="signal-section">
+          <h4>Catalysts</h4>
+          <ul class="signal-list catalyst">
+            <li>Revenue growing +19.5% YoY</li>
+          </ul>
+        </div>
+        
+
+        
+
+        
+        
+          
+            
+          
+        
+          
+        
+          
+            
+              
+            
+          
+            
+              
+            
+          
+        
+          
+        
+          
+            
+              
+            
+          
+        
+          
+            
+              
+            
+          
+            
+              
+            
+          
+        
+        
+        <div class="signal-section">
+          <h4>Notes</h4>
+          <ul class="signal-list">
+            <li>Gross margin 79.4% — 44pp above sector median</li><li>EBITDA negative but improving</li><li>Still pinned to the 52-week low — no confirmation of a bottom yet</li><li>Sector base rate for Consumer Cyclical</li><li>$300M-1B cap — best-performing size bucket in the backtest</li>
+          </ul>
+        </div>
+        
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <span class="action-label">Monthly Action</span>
+      <span class="action-value
+        action-pass">
+        Pass
+      </span>
+    </div>
+  </div>
+  
+
+</div>
+
+<footer>
+  StockPicker &nbsp;·&nbsp; Data via Yahoo Finance &amp; SEC EDGAR &nbsp;·&nbsp;
+  <strong>Not financial advice.</strong> Do your own due diligence.
+</footer>
+
+</body>
+</html>
